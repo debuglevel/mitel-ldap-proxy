@@ -10,6 +10,17 @@ node server.js
 ```
 
 ## Test
+Simple query:
 ```bash
-ldapsearch -H ldap://localhost:1389 -x -b dc=example objectclass=*
+ldapsearch -H ldap://localhost:1389 -x -b dc=baraddur,dc=mordor objectclass=*
 ```
+
+With password:
+```bash
+ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret      -x -b dc=baraddur,dc=mordor objectclass=*
+ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor objectclass=*
+ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor
+```
+
+## References
+<https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual>
