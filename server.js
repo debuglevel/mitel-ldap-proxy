@@ -1,21 +1,21 @@
-const PORT=1389
-const BIND_PASSWORD="supersecret"
-const BASE_DN = "dc=baraddur,dc=mordor"
-const BIND_CN = "cn=sauron"
-const BIND_THINGY = "ou=ts,ou=Users"+","+BASE_DN
-const PHONEBOOK_THINGY = "ou=Phonebook"+","+BASE_DN
+const PORT = 1389
+const BIND_PASSWORD = "supersecret"
+const BASE_DN = "dc=baraddur, dc=mordor"
+//const BIND_THINGY = "cn=sauron"+", "+BASE_DN
+const BIND_THINGY = "cn=sauron"
+const PHONEBOOK_THINGY = "ou=Phonebook" + ", " + BASE_DN
 
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
-ldapServer.bind(BIND_CN, (request, result, next) => {
+ldapServer.bind(BIND_THINGY, (request, result, next) => {
     console.log("Binding to " + request.dn + "...")
 
     // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
-    if (request.dn.toString() !== BIND_CN || request.credentials !== BIND_PASSWORD) {
+    if (request.dn.toString() !== BIND_THINGY || request.credentials !== BIND_PASSWORD) {
         console.log("Credentials check failed")
         return next(new ldap.InvalidCredentialsError());
-    }else{
+    } else {
         console.log("Credentials check passed")
         result.end();
         return next();
@@ -25,10 +25,10 @@ ldapServer.bind(BIND_CN, (request, result, next) => {
 function authorize(request, result, next) {
     console.log("Authorizing "+request.connection.ldap.bindDN+"...")
 
-    if (!request.connection.ldap.bindDN.equals(BIND_CN)) {
+    if (!request.connection.ldap.bindDN.equals(BIND_THINGY)) {
         console.log("Authorization check failed")
         return next(new ldap.InsufficientAccessRightsError());
-    }else{
+    } else {
         console.log("Authorization check passed")
         return next();
     }
