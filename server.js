@@ -1,4 +1,4 @@
-const PORT = 1389
+const PORT = 10389
 const BIND_PASSWORD = "supersecret"
 const BASE_DN = "dc=baraddur, dc=mordor"
 //const BIND_THINGY = "cn=sauron"+", "+BASE_DN
