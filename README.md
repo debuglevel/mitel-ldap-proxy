@@ -24,3 +24,4 @@ ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret -LLL -x -b dc=ba
 
 ## References
 <https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual>
+<https://productdocuments.mitel.com/doc_finder/DocFinder/syd-0431_de.pdf?get&DNR=syd-0431?get&DNR=syd-0431>

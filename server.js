@@ -23,7 +23,7 @@ ldapServer.bind(BIND_THINGY, (request, result, next) => {
 });
 
 function authorize(request, result, next) {
-    console.log("Authorizing "+request.connection.ldap.bindDN+"...")
+    console.log("Authorizing " + request.connection.ldap.bindDN + "...")
 
     if (!request.connection.ldap.bindDN.equals(BIND_THINGY)) {
         console.log("Authorization check failed")
@@ -42,22 +42,40 @@ function loadMockUsers(request, result, next) {
     console.log("Loading mock users...")
 
     const users = [
-        { username: "sauron", phonenumber: "1"},
-        { username: "saruman", phonenumber: "666"},
-        { username: "wario", phonenumber: "111"},
+        {username: "sauron", phonenumber: "1"},
+        {username: "saruman", phonenumber: "666"},
+        {username: "wario", phonenumber: "111"},
     ];
 
     request.users = {};
 
     for (const user of users) {
-        const dn = 'cn=' + user.username + ','+PHONEBOOK_THINGY
-        console.log("Adding user "+user.username+" as "+dn+"...")
+        const dn = 'cn=' + user.username + ',' + PHONEBOOK_THINGY
+        console.log("Adding user " + user.username + " as " + dn + "...")
+
+        // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
+        // Defined like in https://www.msxfaq.de/windows/inetorgorgperson.htm
+        // Some more information in OIP docs: https://productdocuments.mitel.com/doc_finder/DocFinder/syd-0431_de.pdf?get&DNR=syd-0431?get&DNR=syd-0431
         request.users[user.username] = {
             dn: dn,
             attributes: {
                 cn: user.username,
-                phone: user.phonenumber,
-                objectClass: "dummy", // objectClass must always be present in LDAP. Clients break otherwise.
+                givenName: user.username,
+                displayName: user.username + " " + user.username,
+                name: user.username + " " + user.username,
+                // TODO: phone numbers should be E.123
+                homePhone: user.phonenumber, // TODO
+                mobile: user.phonenumber, // TODO
+                // objectClass must always be present in LDAP. Clients break otherwise.
+                objectClass:
+                    [
+                        "Top",
+                        "person",
+                        "organizationalPerson",
+                        "user",
+                        "inetOrgPerson",
+                    ]
+                //"dummy",
             }
         };
     }
