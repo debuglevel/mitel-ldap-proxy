@@ -4,6 +4,7 @@ const BASE_DN = "dc=baraddur, dc=mordor"
 //const BIND_THINGY = "cn=sauron"+", "+BASE_DN
 const BIND_THINGY = "cn=sauron"
 const PHONEBOOK_THINGY = "ou=Phonebook" + ", " + BASE_DN
+const DEV = true
 
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
@@ -34,12 +35,8 @@ function authorize(request, result, next) {
     }
 }
 
-/**
- * Loads all mock users into the request object.
- * A real implementation should probably not load everything.
- */
-function loadMockUsers(request, result, next) {
-    console.log("Loading mock users...")
+function getUsers() {
+    console.log("Getting mock users...")
 
     const users = [
         {username: "sauron", phonenumber: "1"},
@@ -47,9 +44,19 @@ function loadMockUsers(request, result, next) {
         {username: "wario", phonenumber: "111"},
     ];
 
+    return users;
+}
+
+/**
+ * Loads all mock users into the request object.
+ * A real implementation should probably not load everything.
+ */
+function loadMockUsers(request, result, next) {
+    console.log("Loading mock users...")
+
     request.users = {};
 
-    for (const user of users) {
+    for (const user of getUsers()) {
         const dn = 'cn=' + user.username + ',' + PHONEBOOK_THINGY
         console.log("Adding user " + user.username + " as " + dn + "...")
 
@@ -75,7 +82,6 @@ function loadMockUsers(request, result, next) {
                         "user",
                         "inetOrgPerson",
                     ]
-                //"dummy",
             }
         };
     }
@@ -83,8 +89,22 @@ function loadMockUsers(request, result, next) {
     return next();
 }
 
+/**
+ * Loads all users into the request object.
+ */
+function loadUsers(request, result, next) {
+    console.log("Loading users...")
 
-const pre = [authorize, loadMockUsers];
+    if (DEV) {
+        loadMockUsers(request, result, next);
+    } else {
+
+    }
+
+    return next();
+}
+
+const pre = [authorize, loadUsers];
 
 // NOTE: We could also use e.g. "ou=Phonebook,dc=baraddur,dc=mordor" as "name" parameter.
 //       This would register this handler only for this tree. But we can also just basically ignore it.
