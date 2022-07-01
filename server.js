@@ -81,13 +81,19 @@ ldapServer.search("", pre, (request, result, next) => {
     for (const k of keys) {
         //console.log("Checking whether user "+k+" matches...")
         if (request.filter.matches(request.users[k].attributes)) {
-            console.log("Adding object to results: "+k)
+            console.log("Adding object to results: " + k)
             result.send(request.users[k]);
         }
     }
 
     result.end();
     return next();
+});
+
+ldapServer.unbind((request, result, next) => {
+    console.log("Unbinding...")
+    // We could do some clean up here or close handles, if needed.
+    result.end();
 });
 
 ldapServer.listen(1389, function () {
