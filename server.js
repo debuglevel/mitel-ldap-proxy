@@ -1,7 +1,8 @@
 // We retrieve default values from .env
 // That might not be best practise because it seems often to be present in ignore-files.
+console.log("Loading configuration...")
 const config = require('dotenv').config();
-//console.log(config.parsed)
+console.log(config.parsed)
 
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
