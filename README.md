@@ -1,7 +1,8 @@
 **under development, not ready, not even experimental**
 
 # Mitel LDAP proxy
-This service listens as a very basic LDAP server and forwards requests of a Mitel/Aastra/OpenCom/whatever telephony system to a less insane storage backend (like a MySQL/MariaDB database).
+This service listens as a very basic LDAP server and forwards requests of a Mitel/Aastra/OpenCom/OIP/whatever telephony
+system to a less insane storage backend (like a MySQL/MariaDB database).
 
 ## Run
 ```bash
