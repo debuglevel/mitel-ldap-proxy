@@ -10,7 +10,7 @@ const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
 ldapServer.bind(BIND_THINGY, (request, result, next) => {
-    console.log("Binding to " + request.dn + "...")
+    console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
 
     // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
     if (request.dn.toString() !== BIND_THINGY || request.credentials !== BIND_PASSWORD) {
