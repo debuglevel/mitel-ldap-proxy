@@ -96,6 +96,6 @@ ldapServer.unbind((request, result, next) => {
     result.end();
 });
 
-ldapServer.listen(1389, function () {
+ldapServer.listen(PORT, function () {
     console.log('LDAP listening at ' + ldapServer.url);
 });
