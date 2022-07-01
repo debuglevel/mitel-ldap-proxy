@@ -1,19 +1,16 @@
-const PORT = 10389
-const BIND_PASSWORD = "supersecret"
-const BASE_DN = "dc=baraddur, dc=mordor"
-//const BIND_THINGY = "cn=sauron"+", "+BASE_DN
-const BIND_THINGY = "cn=sauron"
-const PHONEBOOK_THINGY = "ou=Phonebook" + ", " + BASE_DN
-const DEV = true
+// We retrieve default values from .env
+// That might not be best practise because it seems often to be present in ignore-files.
+const config = require('dotenv').config();
+//console.log(config.parsed)
 
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
-ldapServer.bind(BIND_THINGY, (request, result, next) => {
+ldapServer.bind(config.parsed.BIND_THINGY, (request, result, next) => {
     console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
 
     // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
-    if (request.dn.toString() !== BIND_THINGY || request.credentials !== BIND_PASSWORD) {
+    if (request.dn.toString() !== config.parsed.BIND_THINGY || request.credentials !== config.parsed.BIND_PASSWORD) {
         console.log("Credentials check failed")
         return next(new ldap.InvalidCredentialsError());
     } else {
@@ -26,7 +23,7 @@ ldapServer.bind(BIND_THINGY, (request, result, next) => {
 function authorize(request, result, next) {
     console.log("Authorizing " + request.connection.ldap.bindDN + "...")
 
-    if (!request.connection.ldap.bindDN.equals(BIND_THINGY)) {
+    if (!request.connection.ldap.bindDN.equals(config.parsed.BIND_THINGY)) {
         console.log("Authorization check failed")
         return next(new ldap.InsufficientAccessRightsError());
     } else {
@@ -57,7 +54,7 @@ function loadMockUsers(request, result, next) {
     request.users = {};
 
     for (const user of getUsers()) {
-        const dn = 'cn=' + user.username + ',' + PHONEBOOK_THINGY
+        const dn = 'cn=' + user.username + ',' + config.parsed.PHONEBOOK_THINGY
         console.log("Adding user " + user.username + " as " + dn + "...")
 
         // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
@@ -95,7 +92,7 @@ function loadMockUsers(request, result, next) {
 function loadUsers(request, result, next) {
     console.log("Loading users...")
 
-    if (DEV) {
+    if (config.parsed.DEV) {
         loadMockUsers(request, result, next);
     } else {
 
@@ -134,6 +131,6 @@ ldapServer.unbind((request, result, next) => {
     result.end();
 });
 
-ldapServer.listen(PORT, function () {
+ldapServer.listen(config.parsed.PORT, function () {
     console.log('LDAP listening at ' + ldapServer.url);
 });

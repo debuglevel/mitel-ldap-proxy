@@ -13,14 +13,15 @@ node server.js
 ## Test
 Simple query:
 ```bash
-ldapsearch -H ldap://localhost:1389 -x -b dc=baraddur,dc=mordor objectclass=*
+ldapsearch -H ldap://localhost:10389 -x -b dc=baraddur,dc=mordor objectclass=*
 ```
 
 With password:
+
 ```bash
-ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret      -x -b dc=baraddur,dc=mordor objectclass=*
-ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor objectclass=*
-ldapsearch -H ldap://localhost:1389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor
+ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret      -x -b dc=baraddur,dc=mordor objectclass=*
+ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor objectclass=*
+ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor
 ```
 
 ## References
