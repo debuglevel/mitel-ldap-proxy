@@ -93,7 +93,8 @@ function loadMockUsers(request, result, next) {
 function loadUsers(request, result, next) {
     console.log("Loading users...")
 
-    if (process.env.DEV) {
+    const isDev = (process.env.DEV === 'true');
+    if (isDev) {
         loadMockUsers(request, result, next);
     } else {
 

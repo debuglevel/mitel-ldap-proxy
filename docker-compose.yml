@@ -10,7 +10,7 @@ services:
       - BASE_DN=dc=baraddur, dc=mordor
       - BIND_THINGY=cn=sauron
       - PHONEBOOK_THINGY=ou=Phonebook, dc=baraddur, dc=mordor
-      - DEV=false
+      - DEV=true
 
 #  # Database and admin tools
 #  db:
