@@ -2,16 +2,16 @@
 // That might not be best practise because it seems often to be present in ignore-files.
 console.log("Loading configuration...")
 const config = require('dotenv').config();
-console.log(config.parsed)
+console.log(process.env)
 
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
-ldapServer.bind(config.parsed.BIND_THINGY, (request, result, next) => {
+ldapServer.bind(process.env.BIND_THINGY, (request, result, next) => {
     console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
 
     // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
-    if (request.dn.toString() !== config.parsed.BIND_THINGY || request.credentials !== config.parsed.BIND_PASSWORD) {
+    if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
         console.log("Credentials check failed")
         return next(new ldap.InvalidCredentialsError());
     } else {
@@ -24,7 +24,7 @@ ldapServer.bind(config.parsed.BIND_THINGY, (request, result, next) => {
 function authorize(request, result, next) {
     console.log("Authorizing " + request.connection.ldap.bindDN + "...")
 
-    if (!request.connection.ldap.bindDN.equals(config.parsed.BIND_THINGY)) {
+    if (!request.connection.ldap.bindDN.equals(process.env.BIND_THINGY)) {
         console.log("Authorization check failed")
         return next(new ldap.InsufficientAccessRightsError());
     } else {
@@ -55,7 +55,7 @@ function loadMockUsers(request, result, next) {
     request.users = {};
 
     for (const user of getUsers()) {
-        const dn = 'cn=' + user.username + ',' + config.parsed.PHONEBOOK_THINGY
+        const dn = 'cn=' + user.username + ',' + process.env.PHONEBOOK_THINGY
         console.log("Adding user " + user.username + " as " + dn + "...")
 
         // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
@@ -93,7 +93,7 @@ function loadMockUsers(request, result, next) {
 function loadUsers(request, result, next) {
     console.log("Loading users...")
 
-    if (config.parsed.DEV) {
+    if (process.env.DEV) {
         loadMockUsers(request, result, next);
     } else {
 
@@ -132,6 +132,6 @@ ldapServer.unbind((request, result, next) => {
     result.end();
 });
 
-ldapServer.listen(config.parsed.PORT, function () {
+ldapServer.listen(process.env.PORT, function () {
     console.log('LDAP listening at ' + ldapServer.url);
 });
