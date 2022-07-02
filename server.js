@@ -7,6 +7,10 @@ console.log(process.env)
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
+const dummyBackend = require('./dummy-backend');
+const mysqlBackend = require('./mysql-backend');
+const ldapUtils = require('./ldap-utils');
+
 ldapServer.bind(process.env.BIND_THINGY, (request, result, next) => {
     console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
 
@@ -33,77 +37,32 @@ function authorize(request, result, next) {
     }
 }
 
-function getUsers() {
-    console.log("Getting mock users...")
-
-    const users = [
-        {username: "sauron", phonenumber: "1"},
-        {username: "saruman", phonenumber: "666"},
-        {username: "wario", phonenumber: "111"},
-    ];
-
-    return users;
-}
-
-/**
- * Loads all mock users into the request object.
- * A real implementation should probably not load everything.
- */
-function loadMockUsers(request, result, next) {
-    console.log("Loading mock users...")
-
-    request.users = {};
-
-    for (const user of getUsers()) {
-        const dn = 'cn=' + user.username + ',' + process.env.PHONEBOOK_THINGY
-        console.log("Adding user " + user.username + " as " + dn + "...")
-
-        // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
-        // Defined like in https://www.msxfaq.de/windows/inetorgorgperson.htm
-        // Some more information in OIP docs: https://productdocuments.mitel.com/doc_finder/DocFinder/syd-0431_de.pdf?get&DNR=syd-0431?get&DNR=syd-0431
-        request.users[user.username] = {
-            dn: dn,
-            attributes: {
-                cn: user.username,
-                givenName: user.username,
-                displayName: user.username + " " + user.username,
-                name: user.username + " " + user.username,
-                // TODO: phone numbers should be E.123
-                homePhone: user.phonenumber, // TODO
-                mobile: user.phonenumber, // TODO
-                // objectClass must always be present in LDAP. Clients break otherwise.
-                objectClass:
-                    [
-                        "Top",
-                        "person",
-                        "organizationalPerson",
-                        "user",
-                        "inetOrgPerson",
-                    ]
-            }
-        };
-    }
-
-    return next();
-}
-
-/**
- * Loads all users into the request object.
- */
-function loadUsers(request, result, next) {
-    console.log("Loading users...")
+function getBackend() {
+    console.log("Getting backend...");
 
     const isDev = (process.env.DEV === 'true');
     if (isDev) {
-        loadMockUsers(request, result, next);
+        console.log("Using dummy backend...");
+        return dummyBackend;
     } else {
-
+        console.log("Using MySQL backend...");
+        return mysqlBackend;
     }
-
-    return next();
 }
 
-const pre = [authorize, loadUsers];
+function getSearchType(filter) {
+    console.log("Getting search type for filter '" + filter + "'...");
+
+    if (filter.startsWith("(sn=")) {
+        return "byName";
+    } else if (filter.startsWith("(|(|mobile=")) {
+        return "byNumber";
+    } else {
+        console.log("ERROR: Filter is neither byName nor byNumber!");
+    }
+}
+
+const pre = [authorize];
 
 // NOTE: We could also use e.g. "ou=Phonebook,dc=baraddur,dc=mordor" as "name" parameter.
 //       This would register this handler only for this tree. But we can also just basically ignore it.
@@ -114,14 +73,24 @@ ldapServer.search("", pre, (request, result, next) => {
     console.log('  Scope: ' + request.scope);
     console.log('  Filter: ' + request.filter.toString());
 
-    const keys = Object.keys(request.users);
-    for (const k of keys) {
-        //console.log("Checking whether user "+k+" matches...")
-        if (request.filter.matches(request.users[k].attributes)) {
-            console.log("Adding object to results: " + k)
-            result.send(request.users[k]);
-        }
+    const searchType = getSearchType(request.filter.toString());
+    console.log("Search type: " + searchType);
+
+    const backend = getBackend();
+
+    console.log(request.filter)
+
+    let users
+    if (searchType === "byName") {
+        users = backend.searchByName(request.filter.initial);
+    } else if (searchType === "byNumber") {
+        users = backend.searchByNumber();
     }
+
+    users.forEach(function (user, index) {
+        const ldapUser = ldapUtils.buildUser(user);
+        result.send(ldapUser);
+    });
 
     result.end();
     return next();
