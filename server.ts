@@ -1,5 +1,3 @@
-// We retrieve default values from .env
-// That might not be best practise because it seems often to be present in ignore-files.
 import {Person} from "./person";
 import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
@@ -9,6 +7,8 @@ const ldapUtils = require('./ldap-utils');
 
 const ldap = require('ldapjs');
 
+// We retrieve default values from .env
+// That might not be best practise because it seems often to be present in ignore-files.
 console.log("Loading configuration...")
 require('dotenv').config();
 console.log(process.env)
