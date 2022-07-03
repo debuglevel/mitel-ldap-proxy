@@ -117,6 +117,7 @@
   "files": [
     "./ldap-utils.ts",
     "person.ts",
-    "server.ts"
+    "server.ts",
+    "dummy-backend.ts"
   ]
 }

@@ -1,4 +1,4 @@
-const searchByNumber = function (number) {
+function searchByNumber(number: string) {
     console.log("Searching persons for number '" + number + "'");
 
     const persons = getPersons();
@@ -22,7 +22,7 @@ const searchByNumber = function (number) {
     return matchingPersons;
 }
 
-const searchByName = function (name) {
+function searchByName(name: string) {
     console.log("Searching persons for name '" + name + "'");
 
     const persons = getPersons();
@@ -40,36 +40,14 @@ const searchByName = function (name) {
     return matchingPersons;
 }
 
-function getPersons() {
+function getPersons(): Person[] {
     console.log("Getting persons...")
 
-    const persons = [
-        {
-            givenname: "Sauron",
-            surname: "Bad-Guy",
-            home: ["+4910011"],
-            mobile: ["+4910021", "+4910022", "+4910022"],
-            business: ["+4910031", "+4910032"],
-        },
-        {
-            givenname: "Saruman",
-            surname: "the White",
-            home: ["+4920"],
-            mobile: ["+4921"],
-            business: ["+4922"],
-        },
-        {
-            givenname: "Tom",
-            surname: "Riddle",
-            home: ["+4930"],
-            mobile: ["+4931"],
-            business: ["+4932"],
-        },
+    const persons: Person[] = [
+        new Person("Sauron", "Bad-Guy", ["+4910011"], ["+4910021", "+4910022", "+4910022"], ["+4910031", "+4910032"]),
+        new Person("Saruman", "the White", ["+4920"], ["+4921"], ["+4922"]),
+        new Person("Tom", "Riddle", ["+4930"], ["+4931"], ["+4932"])
     ];
-
-    for (const person of persons) {
-        person.displayname = person.surname + ", " + person.givenname;
-    }
 
     return persons;
 }
