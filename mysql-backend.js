@@ -1,3 +1,7 @@
+const homeNumberTypeValue = "home";
+const mobileNumberTypeValue = "mobile";
+const businessNumberTypeValue = "business";
+
 const mariadb = require('mariadb');
 const pool = mariadb.createPool({
     host: process.env.DATABASE_HOST,
@@ -85,9 +89,9 @@ async function getPersonById(id) {
                 givenname: row.givenname,
                 surname: row.surname,
                 displayname: `${row.surname}, ${row.givenname}`,
-                home: await getNumbers(connection, id, "home"), // TODO: change to actual numberType
-                mobile: await getNumbers(connection, id, "mobile"), // TODO: change to actual numberType
-                business: await getNumbers(connection, id, "business"), // TODO: change to actual numberType
+                home: await getNumbers(connection, id, homeNumberTypeValue),
+                mobile: await getNumbers(connection, id, mobileNumberTypeValue),
+                business: await getNumbers(connection, id, businessNumberTypeValue),
             }
             console.log(`Built person from row:`);
             console.log(person);
