@@ -2,11 +2,11 @@ module.exports = {
     buildUser: buildObject,
 };
 
-function buildObject(user) {
-    console.log("Building LDAP object for user '" + user.displayname + "'...")
+function buildObject(person) {
+    console.log("Building LDAP object for person '" + person.displayname + "'...")
 
-    const dn = 'CN="' + user.displayname + '"'
-    console.log("Adding user '" + user.displayname + "' as " + dn + "...")
+    const dn = 'CN="' + person.displayname + '"'
+    console.log("Adding person '" + person.displayname + "' as " + dn + "...")
 
     // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
     // Defined like in https://www.msxfaq.de/windows/inetorgorgperson.htm
@@ -14,12 +14,12 @@ function buildObject(user) {
     return {
         dn: dn, // TODO: or objectName?
         attributes: {
-            sn: user.surname,
-            givenname: user.givenname,
+            sn: person.surname,
+            givenname: person.givenname,
             // TODO: phone numbers should be E.123
-            telephonenumber: user.business,
-            homephone: user.home,
-            mobile: user.mobile,
+            telephonenumber: person.business,
+            homephone: person.home,
+            mobile: person.mobile,
             // objectClass must always be present in LDAP. Clients break otherwise.
             // Unknown which or any of these would actually be needed by PBX.
             objectClass:

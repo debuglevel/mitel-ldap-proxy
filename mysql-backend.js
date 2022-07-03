@@ -84,6 +84,7 @@ async function getPersonById(id) {
             const person = {
                 givenname: row.givenname,
                 surname: row.surname,
+                displayname: `${row.surname}, ${row.givenname}`,
                 home: await getNumbers(connection, id, "home"), // TODO: change to actual numberType
                 mobile: await getNumbers(connection, id, "mobile"), // TODO: change to actual numberType
                 business: await getNumbers(connection, id, "business"), // TODO: change to actual numberType

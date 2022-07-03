@@ -67,9 +67,9 @@ function getUsers() {
         },
     ];
 
-    users.forEach(function (user, index) {
+    for (const user of users) {
         user.displayname = user.surname + ", " + user.givenname;
-    });
+    }
 
     return users;
 }
