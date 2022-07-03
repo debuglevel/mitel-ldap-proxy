@@ -50,6 +50,7 @@ don't care enough about ECMAScript development.)
 
 ```bash
 npm install
+tsc
 node server.js
 ```
 

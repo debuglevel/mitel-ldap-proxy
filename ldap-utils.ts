@@ -2,7 +2,7 @@ module.exports = {
     buildPerson: buildObject,
 };
 
-function buildObject(person) {
+function buildObject(person: any) {
     console.log("Building LDAP object for person '" + person.displayname + "'...")
 
     const dn = 'CN="' + person.displayname + '"'
