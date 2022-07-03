@@ -19,7 +19,7 @@ initializeBackend().then(result => {
     let ldapServer = ldap.createServer();
 
     ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
-        console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
+        console.log(`Binding to ${request.dn} with credentials=${request.credentials}...`)
 
         // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
         if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
@@ -38,43 +38,42 @@ initializeBackend().then(result => {
     ldapServer.search("", [authorize], (request: any, result: any, next: any) => {
         try {
             console.log("Processing search request...")
-            console.log('  Base object (DN): ' + request.dn.toString());
-            console.log('  Scope: ' + request.scope);
-            console.log('  Filter: ' + request.filter.toString());
+            console.log(`  Base object (DN): ${request.dn.toString()}`);
+            console.log(`  Scope: ${request.scope}`);
+            console.log(`  Filter: ${request.filter.toString()}`);
             console.log(request.filter)
 
             const searchType = getSearchType(request.filter.toString());
-            console.log("Search type: " + searchType);
+            console.log(`Search type: ${searchType}`);
 
             if (searchType === "byName") {
-                console.log(request.filter)
-                const personsPromise = backend.searchByName(request.filter.initial);
+                backend.searchByName(request.filter.initial)
+                    .then((persons: Person[]) => {
+                        for (const person of persons) {
+                            const ldapPerson = ldapUtils.buildPerson(person);
 
-                personsPromise.then((persons: Person[]) => {
-                    for (const person of persons) {
-                        const ldapPerson = ldapUtils.buildPerson(person);
-                        result.send(ldapPerson);
-                    }
+                            console.log(`Sending LDAP person...: ${ldapPerson}`)
+                            result.send(ldapPerson);
+                        }
 
-                    result.end();
-                    return next();
-                });
+                        result.end();
+                        return next();
+                    });
             } else if (searchType === "byNumber") {
-                // TODO: this is a weird filter where we have to extract the number somehow
                 const number = extractNumber(request.filter.filters[1].toString());
-                console.log(number);
 
-                const personsPromise = backend.searchByNumber(number);
+                backend.searchByNumber(number)
+                    .then((persons: Person[]) => {
+                        for (const person of persons) {
+                            const ldapPerson = ldapUtils.buildPerson(person);
 
-                personsPromise.then((persons: Person[]) => {
-                    for (const person of persons) {
-                        const ldapPerson = ldapUtils.buildPerson(person);
-                        result.send(ldapPerson);
-                    }
+                            console.log(`Sending LDAP person...: ${ldapPerson}`)
+                            result.send(ldapPerson);
+                        }
 
-                    result.end();
-                    return next();
-                });
+                        result.end();
+                        return next();
+                    });
             }
         } catch (e) {
             console.log(e)
@@ -88,12 +87,12 @@ initializeBackend().then(result => {
     });
 
     ldapServer.listen(process.env.PORT, function () {
-        console.log('LDAP listening at ' + ldapServer.url);
+        console.log(`LDAP listening at ${ldapServer.url}`);
     });
 })
 
 function authorize(request: any, result: any, next: any) {
-    console.log("Authorizing " + request.connection.ldap.bindDN + "...")
+    console.log(`Authorizing ${request.connection.ldap.bindDN}...`)
 
     if (!request.connection.ldap.bindDN.equals(process.env.BIND_THINGY)) {
         console.log("Authorization check failed")
@@ -122,16 +121,20 @@ async function initializeBackend(): Promise<Backend> {
 }
 
 function getSearchType(filter: string): string | undefined {
-    console.log("Getting search type for filter '" + filter + "'...");
+    console.log(`Getting search type for filter '${filter}'...`);
 
+    let searchType: string | undefined;
     if (filter.startsWith("(sn=")) {
-        return "byName";
+        searchType = "byName";
     } else if (filter.startsWith("(|(|(mobile=")) {
-        return "byNumber";
+        searchType = "byNumber";
     } else {
         console.log("ERROR: Filter is neither byName nor byNumber!");
-        return undefined
+        searchType = undefined
     }
+
+    console.log(`Got search type for filter '${filter}': ${searchType}`);
+    return searchType;
 }
 
 function extractNumber(simpleFilter: string): string {

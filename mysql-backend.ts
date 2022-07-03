@@ -107,11 +107,11 @@ export class MysqlBackend implements Backend {
     }
 
     private createTable(connection: Connection, name: string, sql: string) {
-        console.log("Creating table '" + name + "' if not existing...");
+        console.log(`Creating table '${name}' if not existing...`);
         connection.query(sql, function (err: any, result: any) {
             if (err) throw err;
             console.log(result);
-            console.log("Created table " + name + " (or already existing)");
+            console.log(`Created table ${name} (or already existing)`);
         });
     }
 

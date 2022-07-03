@@ -5,15 +5,15 @@ module.exports = {
 import {Person} from "./person";
 
 function buildObject(person: Person) {
-    console.log("Building LDAP object for person '" + person.displayname + "'...")
+    console.log(`Building LDAP object for person '${person.displayname}'...`)
 
-    const dn = 'CN="' + person.displayname + '"'
-    console.log("Adding person '" + person.displayname + "' as " + dn + "...")
+    const dn = `CN="${person.displayname}"`
+    console.log(`Adding person '${person.displayname}' as ${dn}...`)
 
     // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
     // Defined like in https://www.msxfaq.de/windows/inetorgorgperson.htm
     // Some more information in OIP docs: https://productdocuments.mitel.com/doc_finder/DocFinder/syd-0431_de.pdf?get&DNR=syd-0431?get&DNR=syd-0431
-    return {
+    let ldapPerson = {
         dn: dn, // TODO: or objectName?
         attributes: {
             sn: person.surname,
@@ -34,4 +34,7 @@ function buildObject(person: Person) {
                 ],
         },
     };
+
+    console.log(`Built LDAP object for person '${person.displayname}': ${ldapPerson}`)
+    return ldapPerson;
 }
