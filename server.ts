@@ -1,5 +1,7 @@
 // We retrieve default values from .env
 // That might not be best practise because it seems often to be present in ignore-files.
+import {Person} from "./person";
+
 console.log("Loading configuration...")
 require('dotenv').config();
 console.log(process.env)

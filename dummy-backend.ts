@@ -1,3 +1,5 @@
+import {Person} from "./person";
+
 function searchByNumber(number: string) {
     console.log("Searching persons for number '" + number + "'");
 

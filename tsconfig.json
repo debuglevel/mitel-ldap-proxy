@@ -118,6 +118,7 @@
     "./ldap-utils.ts",
     "person.ts",
     "server.ts",
-    "dummy-backend.ts"
+    "dummy-backend.ts",
+    "mysql-backend.ts"
   ]
 }

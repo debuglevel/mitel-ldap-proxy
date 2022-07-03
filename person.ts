@@ -1,4 +1,4 @@
-class Person {
+export class Person {
     givenname: string;
     surname: string;
     home: string[] = [];

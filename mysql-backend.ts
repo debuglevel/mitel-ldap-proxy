@@ -1,3 +1,6 @@
+import {Connection, PoolConnection} from "mariadb";
+import {Person} from "./person";
+
 const homeNumberTypeValue = "home";
 const mobileNumberTypeValue = "mobile";
 const businessNumberTypeValue = "business";
@@ -5,23 +8,23 @@ const businessNumberTypeValue = "business";
 const mariadb = require('mariadb');
 const pool = mariadb.createPool({
     host: process.env.DATABASE_HOST,
-    port: parseInt(process.env.DATABASE_PORT),
+    port: parseInt(process.env.DATABASE_PORT!),
     database: process.env.DATABASE_NAME,
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
     connectionLimit: 5
 });
 
-function createTable(connection, name, sql) {
+function createTable(connection: Connection, name: string, sql: string) {
     console.log("Creating table '" + name + "' if not existing...");
-    connection.query(sql, function (err, result) {
+    connection.query(sql, function (err: any, result: any) {
         if (err) throw err;
         console.log(result);
         console.log("Created table " + name + " (or already existing)");
     });
 }
 
-function createTables(connection) {
+function createTables(connection: Connection) {
     console.log("Creating tables if not existing...");
 
     const sqlCreatePersons = "CREATE TABLE IF NOT EXISTS persons (id INT PRIMARY KEY, givenname VARCHAR(255), surname VARCHAR(255))";
@@ -32,21 +35,21 @@ function createTables(connection) {
 }
 
 async function initialize() {
-    let connection;
+    let connection: PoolConnection;
     try {
         connection = await pool.getConnection();
-        console.log(`Got connection with id=${connection.threadId}`);
+        console.log(`Got connection with id=${connection?.threadId}`);
         createTables(connection);
-    } catch (e) {
+    } catch (e: unknown) {
         console.log(e);
     } finally {
-        if (connection) {
+        if (connection!) {
             await connection.release(); // release to pool
         }
     }
 }
 
-async function getNumbers(connection, personId, numberType) {
+async function getNumbers(connection: Connection, personId: number, numberType: string): Promise<string[]> {
     console.log(`Getting '${numberType}' numbers for person id=${personId}...`)
     const result = await connection.query(`
         SELECT n.id, n.type, n.number
@@ -63,10 +66,10 @@ async function getNumbers(connection, personId, numberType) {
     return numbers;
 }
 
-async function getPersonById(id) {
-    console.log(`Getting person by id=${id}...`)
+async function getPersonById(id: number): Promise<Person> {
+    console.log(`Getting person by id=${id}...`);
 
-    let connection;
+    let connection: PoolConnection;
     try {
         connection = await pool.getConnection();
 
@@ -79,40 +82,47 @@ async function getPersonById(id) {
         // console.log("Results:");
         // console.log(result);
 
-        let persons = [];
+        // TODO: we could only process the first entry to be a little bit more efficient.
+        let persons: Person[] = [];
         for (const row of result) {
-            const index = result.indexOf(row);
             console.log("Building person from row...:");
             console.log(row);
 
-            const person = {
-                givenname: row.givenname,
-                surname: row.surname,
-                displayname: `${row.surname}, ${row.givenname}`,
-                home: await getNumbers(connection, id, homeNumberTypeValue),
-                mobile: await getNumbers(connection, id, mobileNumberTypeValue),
-                business: await getNumbers(connection, id, businessNumberTypeValue),
-            }
+            const person = new Person(
+                row.givenname,
+                row.surname,
+                await getNumbers(connection, id, homeNumberTypeValue),
+                await getNumbers(connection, id, mobileNumberTypeValue),
+                await getNumbers(connection, id, businessNumberTypeValue)
+            )
+
             console.log(`Built person from row:`);
             console.log(person);
 
             persons.push(person);
         }
 
-        const person = persons.pop();
-        console.log(`Got person by id=${id}:`)
-        console.log(person);
-        return person;
-    } catch (e) {
+        if (persons.length >= 1) {
+            const person: Person = persons[0];
+
+            console.log(`Got person by id=${id}:`)
+            console.log(person);
+            return person;
+        } else {
+            throw new Error(`no person found with id=${id}`); // TODO: needs probably better error handling; 0 persons should be quite common
+        }
+    } catch (e: unknown) {
+        // TODO: a bit odd, to catch, log and re-throw it
         console.log(e);
+        throw e;
     } finally {
-        if (connection) {
+        if (connection!) {
             await connection.release(); // release to pool
         }
     }
 }
 
-async function searchByNumber(number) {
+async function searchByNumber(number: number): Promise<Person[]> {
     console.log(`Searching by number '${number}'...`);
 
     let connection;
@@ -141,6 +151,7 @@ async function searchByNumber(number) {
         return persons;
     } catch (e) {
         console.log(e);
+        throw e;
     } finally {
         if (connection) {
             await connection.release(); // release to pool
@@ -148,7 +159,7 @@ async function searchByNumber(number) {
     }
 }
 
-async function searchByName(name) {
+async function searchByName(name: string): Promise<Person[]> {
     console.log(`Searching by name '${name}'`);
 
     let connection;
@@ -176,6 +187,7 @@ async function searchByName(name) {
         return persons;
     } catch (e) {
         console.log(e);
+        throw e;
     } finally {
         if (connection) {
             await connection.release(); // release to pool

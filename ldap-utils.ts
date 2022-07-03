@@ -1,3 +1,5 @@
+import {Person} from "./person";
+
 module.exports = {
     buildPerson: buildObject,
 };
