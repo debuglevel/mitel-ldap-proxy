@@ -1,8 +1,8 @@
-import {Person} from "./person";
-
 module.exports = {
     buildPerson: buildObject,
 };
+
+import {Person} from "./person";
 
 function buildObject(person: Person) {
     console.log("Building LDAP object for person '" + person.displayname + "'...")

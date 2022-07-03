@@ -1,3 +1,8 @@
+module.exports = {
+    searchByNumber,
+    searchByName,
+};
+
 import {Person} from "./person";
 
 function searchByNumber(number: string) {
@@ -54,7 +59,3 @@ function getPersons(): Person[] {
     return persons;
 }
 
-module.exports = {
-    searchByNumber,
-    searchByName,
-};

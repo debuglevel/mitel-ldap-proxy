@@ -1,3 +1,9 @@
+module.exports = {
+    searchByNumber,
+    searchByName,
+    initialize,
+};
+
 import {Connection, PoolConnection} from "mariadb";
 import {Person} from "./person";
 
@@ -194,9 +200,3 @@ async function searchByName(name: string): Promise<Person[]> {
         }
     }
 }
-
-module.exports = {
-    searchByNumber,
-    searchByName,
-    initialize,
-};
