@@ -1,7 +1,7 @@
 import {Person} from "./person";
 
-interface Backend {
-    searchByNumber(number: number): Promise<Person[]>
+export interface Backend {
+    searchByNumber(number: string): Promise<Person[]>
 
     searchByName(name: string): Promise<Person[]>
 }

@@ -1,6 +1,8 @@
 // We retrieve default values from .env
 // That might not be best practise because it seems often to be present in ignore-files.
 import {Person} from "./person";
+import {MysqlBackend} from "./mysql-backend";
+import {DummyBackend} from "./dummy-backend";
 
 console.log("Loading configuration...")
 require('dotenv').config();
@@ -9,11 +11,11 @@ console.log(process.env)
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
-const mysqlBackend = require('./mysql-backend');
-mysqlBackend.initialize();
-const dummyBackend = require('./dummy-backend');
+const dummyBackend = new DummyBackend();
+const mysqlBackend = new MysqlBackend();
+mysqlBackend.initialize().then();
+
 const ldapUtils = require('./ldap-utils');
-const {filters} = require("ldapjs");
 
 ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
     console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
