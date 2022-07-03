@@ -1,5 +1,5 @@
 import {Person} from "./person";
-import {Backend} from "./Backend";
+import {Backend} from "./backend";
 
 export class DummyBackend implements Backend {
     async searchByNumber(number: string): Promise<Person[]> {

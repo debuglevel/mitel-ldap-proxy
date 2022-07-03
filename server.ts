@@ -1,7 +1,7 @@
 import {Person} from "./person";
 import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
-import {Backend} from "./Backend";
+import {Backend} from "./backend";
 
 const ldapUtils = require('./ldap-utils');
 

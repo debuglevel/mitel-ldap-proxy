@@ -1,4 +1,4 @@
-import {Backend} from "./Backend";
+import {Backend} from "./backend";
 import {Connection, PoolConnection} from "mariadb";
 import {Person} from "./person";
 
