@@ -3,33 +3,94 @@
 import {Person} from "./person";
 import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
+import {Backend} from "./Backend";
+
+const ldapUtils = require('./ldap-utils');
+
+const ldap = require('ldapjs');
 
 console.log("Loading configuration...")
 require('dotenv').config();
 console.log(process.env)
 
-const ldap = require('ldapjs');
-const ldapServer = ldap.createServer();
+initializeBackend().then(result => {
+    let backend = result;
 
-const dummyBackend = new DummyBackend();
-const mysqlBackend = new MysqlBackend();
-mysqlBackend.initialize().then();
+    let ldapServer = ldap.createServer();
 
-const ldapUtils = require('./ldap-utils');
+    ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
+        console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
 
-ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
-    console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
+        // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
+        if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
+            console.log("Credentials check failed")
+            return next(new ldap.InvalidCredentialsError());
+        } else {
+            console.log("Credentials check passed")
+            result.end();
+            return next();
+        }
+    });
 
-    // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
-    if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
-        console.log("Credentials check failed")
-        return next(new ldap.InvalidCredentialsError());
-    } else {
-        console.log("Credentials check passed")
+    // NOTE: We could also use e.g. "ou=Phonebook,dc=baraddur,dc=mordor" as "name" parameter.
+    //       This would register this handler only for this tree. But we can also just basically ignore it.
+    //ldapServer.search(PHONEBOOK_THINGY, pre, (request, result, next) => {
+    ldapServer.search("", [authorize], (request: any, result: any, next: any) => {
+        try {
+            console.log("Processing search request...")
+            console.log('  Base object (DN): ' + request.dn.toString());
+            console.log('  Scope: ' + request.scope);
+            console.log('  Filter: ' + request.filter.toString());
+            console.log(request.filter)
+
+            const searchType = getSearchType(request.filter.toString());
+            console.log("Search type: " + searchType);
+
+            if (searchType === "byName") {
+                console.log(request.filter)
+                const personsPromise = backend.searchByName(request.filter.initial);
+
+                personsPromise.then((persons: Person[]) => {
+                    for (const person of persons) {
+                        const ldapPerson = ldapUtils.buildPerson(person);
+                        result.send(ldapPerson);
+                    }
+
+                    result.end();
+                    return next();
+                });
+            } else if (searchType === "byNumber") {
+                // TODO: this is a weird filter where we have to extract the number somehow
+                const number = extractNumber(request.filter.filters[1].toString());
+                console.log(number);
+
+                const personsPromise = backend.searchByNumber(number);
+
+                personsPromise.then((persons: Person[]) => {
+                    for (const person of persons) {
+                        const ldapPerson = ldapUtils.buildPerson(person);
+                        result.send(ldapPerson);
+                    }
+
+                    result.end();
+                    return next();
+                });
+            }
+        } catch (e) {
+            console.log(e)
+        }
+    });
+
+    ldapServer.unbind((request: any, result: any, next: any) => {
+        console.log("Unbinding...")
+        // We could do some clean up here or close handles, if needed.
         result.end();
-        return next();
-    }
-});
+    });
+
+    ldapServer.listen(process.env.PORT, function () {
+        console.log('LDAP listening at ' + ldapServer.url);
+    });
+})
 
 function authorize(request: any, result: any, next: any) {
     console.log("Authorizing " + request.connection.ldap.bindDN + "...")
@@ -43,17 +104,19 @@ function authorize(request: any, result: any, next: any) {
     }
 }
 
-function getBackend(): any {
-    console.log("Getting backend...");
-
-    return mysqlBackend;
+async function initializeBackend(): Promise<Backend> {
+    console.log("Initializing backend...");
 
     const isDev = (process.env.DEV === 'true');
+    console.log(`Using development environment: ${isDev}`)
     if (isDev) {
-        console.log("Using dummy backend...");
+        console.log("Initializing dummy backend...");
+        const dummyBackend = new DummyBackend();
         return dummyBackend;
     } else {
-        console.log("Using MySQL backend...");
+        console.log("Initializing MySQL backend...");
+        const mysqlBackend = new MysqlBackend();
+        await mysqlBackend.initialize();
         return mysqlBackend;
     }
 }
@@ -84,66 +147,3 @@ function extractNumber(simpleFilter: string): string {
     console.log(`Extracted number from filter ${simpleFilter}: ${number}`)
     return number;
 }
-
-const pre = [authorize];
-
-// NOTE: We could also use e.g. "ou=Phonebook,dc=baraddur,dc=mordor" as "name" parameter.
-//       This would register this handler only for this tree. But we can also just basically ignore it.
-//ldapServer.search(PHONEBOOK_THINGY, pre, (request, result, next) => {
-ldapServer.search("", pre, (request: any, result: any, next: any) => {
-    try {
-        console.log("Processing search request...")
-        console.log('  Base object (DN): ' + request.dn.toString());
-        console.log('  Scope: ' + request.scope);
-        console.log('  Filter: ' + request.filter.toString());
-        console.log(request.filter)
-
-        const searchType = getSearchType(request.filter.toString());
-        console.log("Search type: " + searchType);
-
-        const backend = getBackend();
-
-        if (searchType === "byName") {
-            console.log(request.filter)
-            const personsPromise = backend.searchByName(request.filter.initial);
-
-            personsPromise.then((persons: Person[]) => {
-                for (const person of persons) {
-                    const ldapPerson = ldapUtils.buildPerson(person);
-                    result.send(ldapPerson);
-                }
-
-                result.end();
-                return next();
-            });
-        } else if (searchType === "byNumber") {
-            // TODO: this is a weird filter where we have to extract the number somehow
-            const number = extractNumber(request.filter.filters[1].toString());
-            console.log(number);
-
-            const personsPromise = backend.searchByNumber(number);
-
-            personsPromise.then((persons: Person[]) => {
-                for (const person of persons) {
-                    const ldapPerson = ldapUtils.buildPerson(person);
-                    result.send(ldapPerson);
-                }
-
-                result.end();
-                return next();
-            });
-        }
-    } catch (e) {
-        console.log(e)
-    }
-});
-
-ldapServer.unbind((request: any, result: any, next: any) => {
-    console.log("Unbinding...")
-    // We could do some clean up here or close handles, if needed.
-    result.end();
-});
-
-ldapServer.listen(process.env.PORT, function () {
-    console.log('LDAP listening at ' + ldapServer.url);
-});
