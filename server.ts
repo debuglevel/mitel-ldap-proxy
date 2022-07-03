@@ -13,7 +13,7 @@ const dummyBackend = require('./dummy-backend');
 const ldapUtils = require('./ldap-utils');
 const {filters} = require("ldapjs");
 
-ldapServer.bind(process.env.BIND_THINGY, (request, result, next) => {
+ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
     console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
 
     // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
@@ -27,7 +27,7 @@ ldapServer.bind(process.env.BIND_THINGY, (request, result, next) => {
     }
 });
 
-function authorize(request, result, next) {
+function authorize(request: any, result: any, next: any) {
     console.log("Authorizing " + request.connection.ldap.bindDN + "...")
 
     if (!request.connection.ldap.bindDN.equals(process.env.BIND_THINGY)) {
@@ -39,7 +39,7 @@ function authorize(request, result, next) {
     }
 }
 
-function getBackend() {
+function getBackend(): any {
     console.log("Getting backend...");
 
     return mysqlBackend;
@@ -54,7 +54,7 @@ function getBackend() {
     }
 }
 
-function getSearchType(filter) {
+function getSearchType(filter: string): string | undefined {
     console.log("Getting search type for filter '" + filter + "'...");
 
     if (filter.startsWith("(sn=")) {
@@ -63,10 +63,11 @@ function getSearchType(filter) {
         return "byNumber";
     } else {
         console.log("ERROR: Filter is neither byName nor byNumber!");
+        return undefined
     }
 }
 
-function extractNumber(simpleFilter) {
+function extractNumber(simpleFilter: string): string {
     console.log(`Extracting number from filter ${simpleFilter}...`)
     // TODO: Does not work here, but fine in Regex101.com
     // let rx = RegExp('\(.*=(.*)\)');
@@ -74,7 +75,7 @@ function extractNumber(simpleFilter) {
     // console.log(arr);
     // let number = arr[1];
 
-    number = simpleFilter.split("=")[1].split(")")[0];
+    const number = simpleFilter.split("=")[1].split(")")[0];
 
     console.log(`Extracted number from filter ${simpleFilter}: ${number}`)
     return number;
@@ -85,7 +86,7 @@ const pre = [authorize];
 // NOTE: We could also use e.g. "ou=Phonebook,dc=baraddur,dc=mordor" as "name" parameter.
 //       This would register this handler only for this tree. But we can also just basically ignore it.
 //ldapServer.search(PHONEBOOK_THINGY, pre, (request, result, next) => {
-ldapServer.search("", pre, (request, result, next) => {
+ldapServer.search("", pre, (request: any, result: any, next: any) => {
     try {
         console.log("Processing search request...")
         console.log('  Base object (DN): ' + request.dn.toString());
@@ -102,7 +103,7 @@ ldapServer.search("", pre, (request, result, next) => {
             console.log(request.filter)
             const personsPromise = backend.searchByName(request.filter.initial);
 
-            personsPromise.then(persons => {
+            personsPromise.then((persons: Person[]) => {
                 for (const person of persons) {
                     const ldapPerson = ldapUtils.buildPerson(person);
                     result.send(ldapPerson);
@@ -118,7 +119,7 @@ ldapServer.search("", pre, (request, result, next) => {
 
             const personsPromise = backend.searchByNumber(number);
 
-            personsPromise.then(persons => {
+            personsPromise.then((persons: Person[]) => {
                 for (const person of persons) {
                     const ldapPerson = ldapUtils.buildPerson(person);
                     result.send(ldapPerson);
@@ -133,7 +134,7 @@ ldapServer.search("", pre, (request, result, next) => {
     }
 });
 
-ldapServer.unbind((request, result, next) => {
+ldapServer.unbind((request: any, result: any, next: any) => {
     console.log("Unbinding...")
     // We could do some clean up here or close handles, if needed.
     result.end();
