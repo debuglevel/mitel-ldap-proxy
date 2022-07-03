@@ -104,8 +104,8 @@ ldapServer.search("", pre, (request, result, next) => {
 
             personsPromise.then(persons => {
                 for (const person of persons) {
-                    const ldapUser = ldapUtils.buildUser(person);
-                    result.send(ldapUser);
+                    const ldapPerson = ldapUtils.buildPerson(person);
+                    result.send(ldapPerson);
                 }
 
                 result.end();
@@ -120,8 +120,8 @@ ldapServer.search("", pre, (request, result, next) => {
 
             personsPromise.then(persons => {
                 for (const person of persons) {
-                    const ldapUser = ldapUtils.buildUser(person);
-                    result.send(ldapUser);
+                    const ldapPerson = ldapUtils.buildPerson(person);
+                    result.send(ldapPerson);
                 }
 
                 result.end();

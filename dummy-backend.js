@@ -1,49 +1,49 @@
 const searchByNumber = function (number) {
-    console.log("Searching users for number '" + number + "'");
+    console.log("Searching persons for number '" + number + "'");
 
-    const users = getUsers();
+    const persons = getPersons();
 
-    let matchingUsers = [];
-    users.forEach(function (user, index) {
-        console.log("Checking if user '" + user.displayname + "' number matches '" + number + "'...");
+    let matchingPersons = [];
+    for (const person of persons) {
+        console.log("Checking if person '" + person.displayname + "' number matches '" + number + "'...");
 
         const numbers = [];
-        numbers.push(...user.home);
-        numbers.push(...user.mobile);
-        numbers.push(...user.business);
+        numbers.push(...person.home);
+        numbers.push(...person.mobile);
+        numbers.push(...person.business);
 
         if (numbers.some(x => x === number)) {
-            console.log("Adding matching user '" + user.displayname + "'...");
-            matchingUsers.push(user);
+            console.log("Adding matching person '" + person.displayname + "'...");
+            matchingPersons.push(person);
         }
-    });
+    }
 
-    console.log("Searched users for number '" + number + "': " + matchingUsers.length);
-    return matchingUsers;
+    console.log("Searched persons for number '" + number + "': " + matchingPersons.length);
+    return matchingPersons;
 }
 
 const searchByName = function (name) {
-    console.log("Searching users for name '" + name + "'");
+    console.log("Searching persons for name '" + name + "'");
 
-    const users = getUsers();
+    const persons = getPersons();
 
-    let matchingUsers = [];
-    users.forEach(function (user, index) {
-        console.log("Checking if user '" + user.displayname + "' name matches '" + name + "'...")
-        if (user.givenname.startsWith(name) || user.surname.startsWith(name)) {
-            console.log("Adding matching user '" + user.displayname + "'...")
-            matchingUsers.push(user);
+    let matchingPersons = [];
+    for (const person of persons) {
+        console.log("Checking if person '" + person.displayname + "' name matches '" + name + "'...")
+        if (person.givenname.startsWith(name) || person.surname.startsWith(name)) {
+            console.log("Adding matching person '" + person.displayname + "'...")
+            matchingPersons.push(person);
         }
-    });
+    }
 
-    console.log("Searched users for name '" + name + "': " + matchingUsers.length);
-    return matchingUsers;
+    console.log("Searched persons for name '" + name + "': " + matchingPersons.length);
+    return matchingPersons;
 }
 
-function getUsers() {
-    console.log("Getting users...")
+function getPersons() {
+    console.log("Getting persons...")
 
-    const users = [
+    const persons = [
         {
             givenname: "Sauron",
             surname: "Bad-Guy",
@@ -67,11 +67,11 @@ function getUsers() {
         },
     ];
 
-    for (const user of users) {
-        user.displayname = user.surname + ", " + user.givenname;
+    for (const person of persons) {
+        person.displayname = person.surname + ", " + person.givenname;
     }
 
-    return users;
+    return persons;
 }
 
 module.exports = {

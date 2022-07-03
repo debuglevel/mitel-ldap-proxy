@@ -1,5 +1,5 @@
 module.exports = {
-    buildUser: buildObject,
+    buildPerson: buildObject,
 };
 
 function buildObject(person) {
