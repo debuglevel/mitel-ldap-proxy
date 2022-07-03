@@ -7,9 +7,11 @@ console.log(process.env)
 const ldap = require('ldapjs');
 const ldapServer = ldap.createServer();
 
-const dummyBackend = require('./dummy-backend');
 const mysqlBackend = require('./mysql-backend');
+mysqlBackend.initialize();
+const dummyBackend = require('./dummy-backend');
 const ldapUtils = require('./ldap-utils');
+const {filters} = require("ldapjs");
 
 ldapServer.bind(process.env.BIND_THINGY, (request, result, next) => {
     console.log("Binding to " + request.dn + " with credentials=" + request.credentials + "...")
@@ -40,6 +42,8 @@ function authorize(request, result, next) {
 function getBackend() {
     console.log("Getting backend...");
 
+    return mysqlBackend;
+
     const isDev = (process.env.DEV === 'true');
     if (isDev) {
         console.log("Using dummy backend...");
@@ -55,11 +59,25 @@ function getSearchType(filter) {
 
     if (filter.startsWith("(sn=")) {
         return "byName";
-    } else if (filter.startsWith("(|(|mobile=")) {
+    } else if (filter.startsWith("(|(|(mobile=")) {
         return "byNumber";
     } else {
         console.log("ERROR: Filter is neither byName nor byNumber!");
     }
+}
+
+function extractNumber(simpleFilter) {
+    console.log(`Extracting number from filter ${simpleFilter}...`)
+    // TODO: Does not work here, but fine in Regex101.com
+    // let rx = RegExp('\(.*=(.*)\)');
+    // let arr = rx.exec(simpleFilter);
+    // console.log(arr);
+    // let number = arr[1];
+
+    number = simpleFilter.split("=")[1].split(")")[0];
+
+    console.log(`Extracted number from filter ${simpleFilter}: ${number}`)
+    return number;
 }
 
 const pre = [authorize];
@@ -68,32 +86,51 @@ const pre = [authorize];
 //       This would register this handler only for this tree. But we can also just basically ignore it.
 //ldapServer.search(PHONEBOOK_THINGY, pre, (request, result, next) => {
 ldapServer.search("", pre, (request, result, next) => {
-    console.log("Processing search request...")
-    console.log('  Base object (DN): ' + request.dn.toString());
-    console.log('  Scope: ' + request.scope);
-    console.log('  Filter: ' + request.filter.toString());
+    try {
+        console.log("Processing search request...")
+        console.log('  Base object (DN): ' + request.dn.toString());
+        console.log('  Scope: ' + request.scope);
+        console.log('  Filter: ' + request.filter.toString());
+        console.log(request.filter)
 
-    const searchType = getSearchType(request.filter.toString());
-    console.log("Search type: " + searchType);
+        const searchType = getSearchType(request.filter.toString());
+        console.log("Search type: " + searchType);
 
-    const backend = getBackend();
+        const backend = getBackend();
 
-    console.log(request.filter)
+        if (searchType === "byName") {
+            console.log(request.filter)
+            const personsPromise = backend.searchByName(request.filter.initial);
 
-    let users
-    if (searchType === "byName") {
-        users = backend.searchByName(request.filter.initial);
-    } else if (searchType === "byNumber") {
-        users = backend.searchByNumber();
+            personsPromise.then(persons => {
+                for (const person of persons) {
+                    const ldapUser = ldapUtils.buildUser(person);
+                    result.send(ldapUser);
+                }
+
+                result.end();
+                return next();
+            });
+        } else if (searchType === "byNumber") {
+            // TODO: this is a weird filter where we have to extract the number somehow
+            const number = extractNumber(request.filter.filters[1].toString());
+            console.log(number);
+
+            const personsPromise = backend.searchByNumber(number);
+
+            personsPromise.then(persons => {
+                for (const person of persons) {
+                    const ldapUser = ldapUtils.buildUser(person);
+                    result.send(ldapUser);
+                }
+
+                result.end();
+                return next();
+            });
+        }
+    } catch (e) {
+        console.log(e)
     }
-
-    users.forEach(function (user, index) {
-        const ldapUser = ldapUtils.buildUser(user);
-        result.send(ldapUser);
-    });
-
-    result.end();
-    return next();
 });
 
 ldapServer.unbind((request, result, next) => {
