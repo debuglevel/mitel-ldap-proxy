@@ -118,10 +118,32 @@ export class MysqlBackend implements Backend {
     private createTables(connection: Connection) {
         console.log("Creating tables if not existing...");
 
-        const sqlCreatePersons = "CREATE TABLE IF NOT EXISTS persons (id INT PRIMARY KEY, givenname VARCHAR(255), surname VARCHAR(255))";
+        const sqlCreatePersons = `
+        CREATE TABLE \`persons\` (
+            \`id\` int(11) NOT NULL,
+            \`givenname\` varchar(255) DEFAULT NULL,
+            \`surname\` varchar(255) DEFAULT NULL,
+            PRIMARY KEY (\`id\`),
+            KEY \`id\` (\`id\`),
+            FULLTEXT KEY \`givenname\` (\`givenname\`),
+            FULLTEXT KEY \`surname\` (\`surname\`)
+           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `;
         this.createTable(connection, "persons", sqlCreatePersons)
 
-        const sqlCreateNumbers = "CREATE TABLE IF NOT EXISTS numbers (id INT PRIMARY KEY, person_id INT, type VARCHAR(255), number VARCHAR(255))";
+        const sqlCreateNumbers = `
+        CREATE TABLE \`numbers\` (
+            \`id\` int(11) NOT NULL,
+            \`person_id\` int(11) DEFAULT NULL,
+            \`type\` varchar(255) DEFAULT NULL,
+            \`number\` varchar(255) DEFAULT NULL,
+            PRIMARY KEY (\`id\`),
+            KEY \`id\` (\`id\`),
+            KEY \`person_id\` (\`person_id\`),
+            KEY \`number\` (\`number\`),
+            KEY \`type\` (\`type\`)
+           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+           `;
         this.createTable(connection, "numbers", sqlCreateNumbers)
     }
 

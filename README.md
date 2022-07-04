@@ -9,11 +9,14 @@ The idea is to have a MariaDB which can be the target of an ETL process. This da
 tables `persons` and `numbers`:
 
 ```sql
-persons	CREATE TABLE `persons` (
+CREATE TABLE `persons` (
  `id` int(11) NOT NULL,
  `givenname` varchar(255) DEFAULT NULL,
  `surname` varchar(255) DEFAULT NULL,
- PRIMARY KEY (`id`)
+ PRIMARY KEY (`id`),
+ KEY `id` (`id`),
+ FULLTEXT KEY `givenname` (`givenname`),
+ FULLTEXT KEY `surname` (`surname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ```
 
@@ -21,12 +24,16 @@ persons	CREATE TABLE `persons` (
 called).
 
 ```sql
-numbers	CREATE TABLE `numbers` (
+CREATE TABLE `numbers` (
  `id` int(11) NOT NULL,
  `person_id` int(11) DEFAULT NULL,
  `type` varchar(255) DEFAULT NULL,
  `number` varchar(255) DEFAULT NULL,
- PRIMARY KEY (`id`)
+ PRIMARY KEY (`id`),
+ KEY `id` (`id`),
+ KEY `person_id` (`person_id`),
+ KEY `number` (`number`),
+ KEY `type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ```
 
