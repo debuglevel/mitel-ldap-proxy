@@ -2,6 +2,8 @@ import {Backend} from "./backend";
 import {Connection, PoolConnection} from "mariadb";
 import {Person} from "./person";
 
+const logger = require('./logger');
+
 export class MysqlBackend implements Backend {
     private mariadb = require('mariadb');
 
@@ -22,10 +24,10 @@ export class MysqlBackend implements Backend {
         let connection: PoolConnection;
         try {
             connection = await this.pool.getConnection();
-            console.log(`Got connection with id=${connection?.threadId}`);
+            logger.trace(`Got connection with id=${connection?.threadId}`);
             this.createTables(connection);
         } catch (e: unknown) {
-            console.log(e);
+            logger.error(e);
         } finally {
             if (connection!) {
                 await connection.release(); // release to pool
@@ -34,12 +36,12 @@ export class MysqlBackend implements Backend {
     }
 
     async searchByNumber(number: string): Promise<Person[]> {
-        console.log(`Searching by number '${number}'...`);
+        logger.debug(`Searching by number '${number}'...`);
 
         let connection;
         try {
             connection = await this.pool.getConnection();
-            console.log(`Got connection with id=${connection.threadId}`);
+            logger.trace(`Got connection with id=${connection.threadId}`);
 
             const result = await connection.query(`
         SELECT p.id
@@ -57,11 +59,11 @@ export class MysqlBackend implements Backend {
                 persons.push(person);
             }
 
-            console.log(`Got ${persons.length} persons searched by number:`)
-            console.log(persons);
+            logger.trace(`Got ${persons.length} persons searched by number:`)
+            logger.trace(persons);
             return persons;
         } catch (e) {
-            console.log(e);
+            logger.error(e);
             throw e;
         } finally {
             if (connection) {
@@ -71,12 +73,12 @@ export class MysqlBackend implements Backend {
     }
 
     async searchByName(name: string): Promise<Person[]> {
-        console.log(`Searching by name '${name}'`);
+        logger.debug(`Searching by name '${name}'`);
 
         let connection;
         try {
             connection = await this.pool.getConnection();
-            console.log(`Got connection with id=${connection.threadId}`);
+            logger.trace(`Got connection with id=${connection.threadId}`);
 
             const result = await connection.query(`
         SELECT p.id
@@ -93,11 +95,11 @@ export class MysqlBackend implements Backend {
                 persons.push(person);
             }
 
-            console.log(`Got ${persons.length} persons searched by name:`)
-            console.log(persons);
+            logger.trace(`Got ${persons.length} persons searched by name:`)
+            logger.trace(persons);
             return persons;
         } catch (e) {
-            console.log(e);
+            logger.debug(e);
             throw e;
         } finally {
             if (connection) {
@@ -107,16 +109,16 @@ export class MysqlBackend implements Backend {
     }
 
     private createTable(connection: Connection, name: string, sql: string) {
-        console.log(`Creating table '${name}' if not existing...`);
+        logger.debug(`Creating table '${name}' if not existing...`);
         connection.query(sql, function (err: any, result: any) {
             if (err) throw err;
-            console.log(result);
-            console.log(`Created table ${name} (or already existing)`);
+            logger.debug(result);
+            logger.debug(`Created table ${name} (or already existing)`);
         });
     }
 
     private createTables(connection: Connection) {
-        console.log("Creating tables if not existing...");
+        logger.debug("Creating tables if not existing...");
 
         const sqlCreatePersons = `
         CREATE TABLE IF NOT EXISTS \`persons\` (
@@ -148,7 +150,7 @@ export class MysqlBackend implements Backend {
     }
 
     private async getNumbers(connection: Connection, personId: number, numberType: string): Promise<string[]> {
-        console.log(`Getting '${numberType}' numbers for person id=${personId}...`)
+        logger.debug(`Getting '${numberType}' numbers for person id=${personId}...`)
         const result = await connection.query(`
         SELECT n.id, n.type, n.number
         FROM numbers n
@@ -160,12 +162,12 @@ export class MysqlBackend implements Backend {
             numbers.push(row.number);
         }
 
-        console.log(`Got ${numbers.length} '${numberType}' numbers for person id=${personId}...`)
+        logger.trace(`Got ${numbers.length} '${numberType}' numbers for person id=${personId}...`)
         return numbers;
     }
 
     private async getPersonById(id: number): Promise<Person> {
-        console.log(`Getting person by id=${id}...`);
+        logger.debug(`Getting person by id=${id}...`);
 
         let connection: PoolConnection;
         try {
@@ -183,8 +185,8 @@ export class MysqlBackend implements Backend {
             // TODO: we could only process the first entry to be a little bit more efficient.
             let persons: Person[] = [];
             for (const row of result) {
-                console.log("Building person from row...:");
-                console.log(row);
+                logger.trace("Building person from row...:");
+                logger.trace(row);
 
                 const person = new Person(
                     row.givenname,
@@ -194,8 +196,8 @@ export class MysqlBackend implements Backend {
                     await this.getNumbers(connection, id, this.businessNumberTypeValue)
                 )
 
-                console.log(`Built person from row:`);
-                console.log(person);
+                logger.trace(`Built person from row:`);
+                logger.trace(person);
 
                 persons.push(person);
             }
@@ -203,15 +205,15 @@ export class MysqlBackend implements Backend {
             if (persons.length >= 1) {
                 const person: Person = persons[0];
 
-                console.log(`Got person by id=${id}:`)
-                console.log(person);
+                logger.trace(`Got person by id=${id}:`)
+                logger.trace(person);
                 return person;
             } else {
                 throw new Error(`no person found with id=${id}`); // TODO: needs probably better error handling; 0 persons should be quite common
             }
         } catch (e: unknown) {
             // TODO: a bit odd, to catch, log and re-throw it
-            console.log(e);
+            logger.error(e);
             throw e;
         } finally {
             if (connection!) {

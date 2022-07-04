@@ -14,4 +14,7 @@
 
 const pino = require('pino');
 
-module.exports = pino({});
+module.exports = pino({
+    name: 'mitel-ldap-proxy',
+    level: 'trace',
+});

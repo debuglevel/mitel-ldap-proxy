@@ -1,3 +1,5 @@
+const logger = require('./logger');
+
 module.exports = {
     buildPerson: buildObject,
 };
@@ -5,10 +7,10 @@ module.exports = {
 import {Person} from "./person";
 
 function buildObject(person: Person) {
-    console.log(`Building LDAP object for person '${person.displayname}'...`)
+    logger.trace(`Building LDAP object for person '${person.displayname}'...`)
 
     const dn = `CN="${person.displayname}"`
-    console.log(`Adding person '${person.displayname}' as ${dn}...`)
+    logger.trace(`Adding person '${person.displayname}' as ${dn}...`)
 
     // Mitel docs suggest schema inetOrgPerson: https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual
     // Defined like in https://www.msxfaq.de/windows/inetorgorgperson.htm
@@ -35,6 +37,6 @@ function buildObject(person: Person) {
         },
     };
 
-    console.log(`Built LDAP object for person '${person.displayname}': ${ldapPerson}`)
+    logger.trace(`Built LDAP object for person '${person.displayname}': ${ldapPerson}`)
     return ldapPerson;
 }
