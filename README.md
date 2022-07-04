@@ -42,6 +42,8 @@ course, we rely on the data to be consistent (ensure to delete data missing in t
 * the somewhat ambiguous `mobile` (maybe that's from a decade, where nobody could think of private mobiles and hence
   always meant to be a business number?)
 
+`number` MUST be in E.164 format (e.g. `+4930123456`). Any weird parantheses, slashes or whatever (e.g. `+49 (30) 1234-56` or `030/1234 56`) will cause failing lookups. Do not even replace `+` with `00` (e.g. `0049` instead of `+49`), because that's just not what the PBX is looking up.
+
 ## Run
 
 Running the service if fairly simple as long as NodeJS is installed (which should ship with `npm`). As of writing this,
