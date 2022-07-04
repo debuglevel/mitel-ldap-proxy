@@ -23,6 +23,7 @@ export class MysqlBackend implements Backend {
     async initialize() {
         let connection: PoolConnection;
         try {
+            logger.trace(`Getting connection...`);
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection?.threadId}`);
             this.createTables(connection);
@@ -40,20 +41,21 @@ export class MysqlBackend implements Backend {
 
         let connection;
         try {
+            logger.trace(`Getting connection...`);
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection.threadId}`);
 
+            logger.trace(`Querying...`);
             const result = await connection.query(`
         SELECT p.id
         FROM numbers n
         JOIN persons p ON n.person_id = p.id
         WHERE n.number = ? 
         `, [number]);
+            logger.trace(`Got ${result.length} results`);
+            // logger.trace(result);
 
-            // console.log("Results:");
-            // console.log(result);
-
-            let persons = [];
+            let persons: Person[] = [];
             for (const row of result) {
                 const person = await this.getPersonById(row.id)
                 persons.push(person);
@@ -77,19 +79,20 @@ export class MysqlBackend implements Backend {
 
         let connection;
         try {
+            logger.trace(`Getting connection...`);
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection.threadId}`);
 
+            logger.trace(`Querying...`);
             const result = await connection.query(`
         SELECT p.id
         FROM persons p
         WHERE p.givenname LIKE ? OR p.surname LIKE ? 
         `, [`${name}%`, `${name}%`]);
+            logger.trace(`Got ${result.length} results`);
+            // logger.trace(result);
 
-            // console.log("Results:");
-            // console.log(result);
-
-            let persons = [];
+            let persons: Person[] = [];
             for (const row of result) {
                 const person = await this.getPersonById(row.id)
                 persons.push(person);
@@ -171,16 +174,18 @@ export class MysqlBackend implements Backend {
 
         let connection: PoolConnection;
         try {
+            logger.trace(`Getting connection...`);
             connection = await this.pool.getConnection();
+            logger.trace(`Got connection with id=${connection.threadId}`);
 
+            logger.trace(`Querying...`);
             const result = await connection.query(`
         SELECT p.id, p.givenname, p.surname
         FROM persons p
         WHERE p.id = ? 
         `, [id]);
-
-            // console.log("Results:");
-            // console.log(result);
+            logger.trace(`Got ${result.length} results`);
+            // logger.trace(result);
 
             // TODO: we could only process the first entry to be a little bit more efficient.
             let persons: Person[] = [];
@@ -209,7 +214,7 @@ export class MysqlBackend implements Backend {
                 logger.trace(person);
                 return person;
             } else {
-                throw new Error(`no person found with id=${id}`); // TODO: needs probably better error handling; 0 persons should be quite common
+                throw new Error(`No person found with id=${id}`); // TODO: needs probably better error handling; 0 persons should be quite common
             }
         } catch (e: unknown) {
             // TODO: a bit odd, to catch, log and re-throw it
