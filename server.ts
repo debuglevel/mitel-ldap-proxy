@@ -3,6 +3,9 @@ import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
 import {Backend} from "./backend";
 
+const logger = require('./logger');
+logger.info('Starting mitel-ldap-proxy...');
+
 const ldapUtils = require('./ldap-utils');
 
 const ldap = require('ldapjs');

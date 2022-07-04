@@ -120,6 +120,7 @@
     "person.ts",
     "server.ts",
     "dummy-backend.ts",
-    "mysql-backend.ts"
+    "mysql-backend.ts",
+    "logger.ts"
   ]
 }

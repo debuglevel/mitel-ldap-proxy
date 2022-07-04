@@ -17,6 +17,7 @@
     "dotenv": "^16.0.1",
     "ldapjs": "2.3.3",
     "mariadb": "3.0.0",
+    "pino": "8.1.0",
     "save-dev": "0.0.1-security"
   },
   "devDependencies": {
