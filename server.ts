@@ -126,7 +126,7 @@ function getSearchType(filter: string): string | undefined {
     let searchType: string | undefined;
     if (filter.startsWith("(sn=")) {
         searchType = "byName";
-    } else if (filter.startsWith("(|(|(mobile=")) {
+    } else if (filter.startsWith("(|(mobile=")) {
         searchType = "byNumber";
     } else {
         console.log("ERROR: Filter is neither byName nor byNumber!");
