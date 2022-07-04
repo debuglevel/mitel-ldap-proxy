@@ -1,0 +1,136 @@
+services:
+  - name: docker:dind
+    command: ["/bin/sh", "-c", "[[ -z $CERTIFICATE_URL ]] && ( echo Injecting no certificate && dockerd-entrypoint.sh || exit ) || ( echo Injecting certificate $CERTIFICATE_URL && wget $CERTIFICATE_URL -O /usr/local/share/ca-certificates/cert.crt && update-ca-certificates && dockerd-entrypoint.sh || exit )"]
+
+variables:
+## Uncomment this to inject a self-signed certificate into the docker:dind service
+#  CERTIFICATE_URL: http://my_server/my_corp.crt
+#  # Disable TLS; see: https://gitlab.com/gitlab-org/gitlab-runner/issues/1350#note_199840999 and https://about.gitlab.com/2019/07/31/docker-in-docker-with-docker-19-dot-03/
+#  DOCKER_TLS_CERTDIR: ""
+
+before_script:
+  - JOB_TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+  - COMMIT_HASH_SHORT=${CI_COMMIT_SHA:0:8}
+  # Use git tag, but remove some invalid characters
+  - COMMIT_BRANCH_OR_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's#[/.:() ]#-#g')
+  - REGISTRY_HOST=$CI_REGISTRY
+  - REGISTRY_USER=$CI_REGISTRY_USER
+  - REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
+  - REGISTRY_IMAGE=$CI_REGISTRY_IMAGE
+
+stages:
+  - build
+  - release
+  - sbom
+  - scan
+
+# No explicit test stage is needed, as "gradle build" does already run the "test" task
+#test:
+#  stage: build
+#  image: alpine:3.7
+#  script:
+#    - ...
+
+# # Traditional build with gradle and generate artifacts
+# build:
+#   stage: build
+#   image: openjdk:17-jdk
+#   script:
+#     - ./gradlew build
+#   artifacts:
+#     paths:
+#       # Use all distribution tar files
+#       - "build/distributions/*.tar"
+
+#       # Reports (e.g. about failed tests)
+#       - "build/reports"
+
+## Build and push docker images
+# Build docker image and push it to the registry as "debuglevel/greeting-microservice:branch-97dd42c"
+build docker image:
+  stage: build
+  image: docker:latest
+  script:
+    - echo "JOB_TIMESTAMP $JOB_TIMESTAMP | COMMIT_HASH_SHORT $COMMIT_HASH_SHORT | COMMIT_BRANCH_OR_TAG $COMMIT_BRANCH_OR_TAG | REGISTRY_HOST $REGISTRY_HOST | REGISTRY_USER $REGISTRY_USER | REGISTRY_IMAGE $REGISTRY_IMAGE | CERTIFICATE_URL $CERTIFICATE_URL"
+    - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" $REGISTRY_HOST
+    - docker build --pull -t "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT" .
+    - docker push "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT" && echo "== Pushed docker image $REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT"
+
+# Release (branch) docker image built above by pushing it to the registry as "debuglevel/greeting-microservice:branch"
+push docker image:
+  stage: release
+  image: docker:latest
+  script:
+    - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" $REGISTRY_HOST
+    - docker pull "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT"
+    - docker tag "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT" "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG"
+    - docker push "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG" && echo "== Pushed docker image $REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG"
+
+# Release (master) docker image built above by pushing it to the registry as "debuglevel/greeting-microservice" (which automatically also becomes "debuglevel/greeting-microservice:latest")
+push docker image on master as latest:
+  stage: release
+  image: docker:latest
+  script:
+    - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" $REGISTRY_HOST
+    - docker pull "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT"
+    - docker tag "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT" "$REGISTRY_IMAGE"
+    - docker push "$REGISTRY_IMAGE" && echo "== Pushed docker image $REGISTRY_IMAGE"
+  only:
+    - master
+
+collect SBOM (syft, jar):
+  stage: sbom
+  image: ubuntu:20.04
+  script:
+    - apt-get update && apt-get install -y curl
+    - curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    # This seems to give the most complete output. Not sure though how syft collects the SBOM.
+    - syft file:"$(find build/distributions | grep -v shadow | grep tar)" -o json=jar.sbom.syft.json -o table=jar.sbom.syft.table -o table
+  artifacts:
+    paths:
+      - "*sbom*"
+
+collect SBOM (syft, docker):
+  stage: sbom
+  image: docker:latest
+  script:
+    - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" $REGISTRY_HOST
+    - docker pull "$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT"
+
+    - apk add curl
+    - curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    # This seems to give the most complete output. Not sure though how syft collects the SBOM.
+    - syft docker:"$REGISTRY_IMAGE:$COMMIT_BRANCH_OR_TAG-$COMMIT_HASH_SHORT" -o json=docker.sbom.syft.json -o table=docker.sbom.syft.table -o table
+  artifacts:
+    paths:
+      - "*sbom*"
+
+scan vulnerabilities (grype, jar):
+  stage: scan
+  image: ubuntu:20.04
+  script:
+    - apt-get update && apt-get install -y curl
+    - curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+    # WORKAROUND: until https://github.com/anchore/grype/issues/648 is fixed
+    #- grype sbom:./jar.sbom.syft.json -o json=jar.vulnerabilities.grype.json -o table=jar.vulnerabilities.grype.table -o table
+    - grype sbom:./jar.sbom.syft.json -o json > jar.vulnerabilities.grype.json
+    - grype sbom:./jar.sbom.syft.json -o table > jar.vulnerabilities.grype.table
+    - grype sbom:./jar.sbom.syft.json -o table
+  artifacts:
+    paths:
+      - "*vulnerabilities*"
+
+scan vulnerabilities (grype, docker):
+  stage: scan
+  image: ubuntu:20.04
+  script:
+    - apt-get update && apt-get install -y curl
+    - curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+    # WORKAROUND: until https://github.com/anchore/grype/issues/648 is fixed
+    #- grype sbom:./docker.sbom.syft.json -o json=docker.vulnerabilities.grype.json -o table=docker.vulnerabilities.grype.table -o table
+    - grype sbom:./docker.sbom.syft.json -o json > docker.vulnerabilities.grype.json
+    - grype sbom:./docker.sbom.syft.json -o table > docker.vulnerabilities.grype.table
+    - grype sbom:./docker.sbom.syft.json -o table
+  artifacts:
+    paths:
+      - "*vulnerabilities*"
