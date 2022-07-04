@@ -119,7 +119,7 @@ export class MysqlBackend implements Backend {
         console.log("Creating tables if not existing...");
 
         const sqlCreatePersons = `
-        CREATE TABLE \`persons\` (
+        CREATE TABLE IF NOT EXISTS \`persons\` (
             \`id\` int(11) NOT NULL,
             \`givenname\` varchar(255) DEFAULT NULL,
             \`surname\` varchar(255) DEFAULT NULL,
@@ -132,7 +132,7 @@ export class MysqlBackend implements Backend {
         this.createTable(connection, "persons", sqlCreatePersons)
 
         const sqlCreateNumbers = `
-        CREATE TABLE \`numbers\` (
+        CREATE TABLE IF NOT EXISTS \`numbers\` (
             \`id\` int(11) NOT NULL,
             \`person_id\` int(11) DEFAULT NULL,
             \`type\` varchar(255) DEFAULT NULL,
