@@ -26,10 +26,10 @@ initializeBackend().then(result => {
 
         // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
         if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
-            logger.debug("Credentials check failed");
+            logger.warn("Credentials check failed");
             return next(new ldap.InvalidCredentialsError());
         } else {
-            logger.debug("Credentials check passed");
+            logger.trace("Credentials check passed");
             result.end();
             return next();
         }
@@ -99,7 +99,7 @@ function authorize(request: any, result: any, next: any) {
     logger.debug(`Authorizing ${request.connection.ldap.bindDN}...`);
 
     if (!request.connection.ldap.bindDN.equals(process.env.BIND_THINGY)) {
-        logger.trace("Authorization check failed");
+        logger.warn("Authorization check failed");
         return next(new ldap.InsufficientAccessRightsError());
     } else {
         logger.trace("Authorization check passed");
