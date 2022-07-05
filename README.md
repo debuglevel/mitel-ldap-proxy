@@ -67,7 +67,8 @@ node build/server.js
 `npm run-script run` or `npm run run` will run the command defined under `scripts.run` in `package.json` (which
 is `tsc && node build/server.js`).
 
-If a `scripts.start` would be defined, `npm start` (or `npm restart`) would run it.
+If a `scripts.start` would be defined, `npm start` (or `npm restart`) would run it. It's just a shortcut
+for `npm run-script start`.
 
 ## Test
 
