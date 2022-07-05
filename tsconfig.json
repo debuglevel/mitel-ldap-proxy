@@ -126,7 +126,7 @@
   },
   //"include": ["./src/**/*"],
   "files": [
-    "./ldap-utils.ts",
+    "ldap-utils.ts",
     "person.ts",
     "server.ts",
     "dummy-backend.ts",
