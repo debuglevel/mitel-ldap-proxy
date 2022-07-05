@@ -48,9 +48,13 @@ function getSearchType(filter: string): string | undefined {
     logger.trace(`Getting search type for filter '${filter}'...`);
 
     let searchType: string | undefined;
-    if (filter.startsWith("(|(sn=")) {
+    if (filter.toLowerCase().includes("(sn=")
+        || filter.toLowerCase().includes("(givenname=")) {
         searchType = "byName";
-    } else if (filter.startsWith("(|(mobile=")) {
+    } else if (
+        filter.toLowerCase().includes("(mobile=")
+        || filter.toLowerCase().includes("(homephone=")
+        || filter.toLowerCase().includes("(telephonenumber=")) {
         searchType = "byNumber";
     } else {
         logger.error("ERROR: Filter is neither byName nor byNumber!");
