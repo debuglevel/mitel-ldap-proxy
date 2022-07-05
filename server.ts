@@ -50,7 +50,8 @@ initializeBackend().then(result => {
             logger.trace(`Search type: ${searchType}`);
 
             if (searchType === "byName") {
-                backend.searchByName(request.filter.initial)
+                const name = extractName(request.filter.filters[1].toString());
+                backend.searchByName(name)
                     .then((persons: Person[]) => {
                         for (const person of persons) {
                             const ldapPerson = ldapUtils.buildPerson(person);
@@ -152,4 +153,18 @@ function extractNumber(simpleFilter: string): string {
 
     logger.trace(`Extracted number from filter ${simpleFilter}: ${number}`)
     return number;
+}
+
+function extractName(simpleFilter: string): string {
+    logger.trace(`Extracting name from filter ${simpleFilter}...`)
+    // TODO: Does not work here, but fine in Regex101.com
+    // let rx = RegExp('\(.*=(.*)\)');
+    // let arr = rx.exec(simpleFilter);
+    // console.log(arr);
+    // let number = arr[1];
+
+    const name = simpleFilter.split("=")[1].split("*")[0];
+
+    logger.trace(`Extracted name from filter ${simpleFilter}: ${name}`)
+    return name;
 }
