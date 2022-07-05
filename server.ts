@@ -44,7 +44,7 @@ initializeBackend().then(result => {
             logger.trace(`  Base object (DN): ${request.dn.toString()}`);
             logger.trace(`  Scope: ${request.scope}`);
             logger.trace(`  Filter: ${request.filter.toString()}`);
-            logger.trace(request.filter)
+            // logger.trace(request.filter)
 
             const searchType = getSearchType(request.filter.toString());
             logger.trace(`Search type: ${searchType}`);
