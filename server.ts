@@ -3,6 +3,12 @@ import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
 import {Backend} from "./backend";
 
+module.exports = {
+    extractNumber,
+    extractName,
+    getSearchType,
+};
+
 const logger = require("./logger");
 logger.info("Starting mitel-ldap-proxy...");
 

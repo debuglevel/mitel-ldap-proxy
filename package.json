@@ -32,6 +32,7 @@
     "save-dev": "0.0.1-security"
   },
   "devDependencies": {
+    "@types/jest": "^28.1.4",
     "@types/ldapjs": "2.2.2",
     "@types/node": "18.0.1",
     "@typescript-eslint/eslint-plugin": "5.30.5",
