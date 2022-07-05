@@ -22,7 +22,7 @@ initializeBackend().then(result => {
     const ldapServer = ldap.createServer();
 
     ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
-        logger.debug(`Binding to ${request.dn} with credentials=${request.credentials}...`);
+        logger.debug(`Binding to ${request.dn}...`);
 
         // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
         if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
