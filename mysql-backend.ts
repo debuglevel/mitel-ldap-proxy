@@ -1,8 +1,11 @@
 import {Backend} from "./backend";
 import {Connection, PoolConnection} from "mariadb";
 import {Person} from "./person";
+import {Statistics} from "./statistics";
 
 const logger = require('./logger');
+
+const statistics = new Statistics();
 
 export class MysqlBackend implements Backend {
     private mariadb = require('mariadb');
@@ -63,6 +66,13 @@ export class MysqlBackend implements Backend {
 
             logger.trace(`Got ${persons.length} persons searched by number:`)
             logger.trace(persons);
+
+            if (persons.length >= 1) {
+                statistics.addByNumberFound();
+            } else {
+                statistics.addByNumberMiss();
+            }
+
             return persons;
         } catch (e) {
             logger.error(e);
@@ -100,6 +110,13 @@ export class MysqlBackend implements Backend {
 
             logger.trace(`Got ${persons.length} persons searched by name:`)
             logger.trace(persons);
+
+            if (persons.length >= 1) {
+                statistics.addByNameFound();
+            } else {
+                statistics.addByNameMiss();
+            }
+
             return persons;
         } catch (e) {
             logger.debug(e);
