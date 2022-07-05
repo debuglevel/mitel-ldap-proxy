@@ -59,9 +59,15 @@ don't care enough about ECMAScript development.)
 
 ```bash
 npm install
+
 tsc
-node server.js
+node build/server.js
 ```
+
+`npm run-script run` or `npm run run` will run the command defined under `scripts.run` in `package.json` (which
+is `tsc && node build/server.js`).
+
+If a `scripts.start` would be defined, `npm start` (or `npm restart`) would run it.
 
 ## Test
 
