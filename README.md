@@ -68,7 +68,7 @@ node server.js
 The PBX will usually query only two filters. You can test those with `ldapsearch`.
 
 ```bash
-ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(sn=Sa*)"
+ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(|(sn=Sa*))"
 ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(|(mobile=+4930666)(homephone=+4930666)(telephonenumber=+4930666))"
 ```
 

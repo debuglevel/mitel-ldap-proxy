@@ -127,7 +127,7 @@ function getSearchType(filter: string): string | undefined {
     logger.trace(`Getting search type for filter '${filter}'...`);
 
     let searchType: string | undefined;
-    if (filter.startsWith("(sn=")) {
+    if (filter.startsWith("(|(sn=")) {
         searchType = "byName";
     } else if (filter.startsWith("(|(mobile=")) {
         searchType = "byNumber";
