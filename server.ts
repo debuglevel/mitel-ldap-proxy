@@ -50,7 +50,7 @@ initializeBackend().then(result => {
             logger.trace(`Search type: ${searchType}`);
 
             if (searchType === "byName") {
-                const name = extractName(request.filter.filters[1].toString());
+                const name = extractName(request.filter.toString());
                 backend.searchByName(name)
                     .then((persons: Person[]) => {
                         for (const person of persons) {
