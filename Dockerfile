@@ -14,7 +14,7 @@ RUN npm install
 
 # Copy and build source
 COPY . .
-RUN npm run build
+RUN npm run build-ts
 
 
 ## Final image
