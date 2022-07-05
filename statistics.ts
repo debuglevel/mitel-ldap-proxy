@@ -1,4 +1,4 @@
-const logger = require('./logger');
+const logger = require("./logger");
 
 export class Statistics {
     private missedByName: number = 0;

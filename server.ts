@@ -3,33 +3,33 @@ import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
 import {Backend} from "./backend";
 
-const logger = require('./logger');
-logger.info('Starting mitel-ldap-proxy...');
+const logger = require("./logger");
+logger.info("Starting mitel-ldap-proxy...");
 
-const ldapUtils = require('./ldap-utils');
+const ldapUtils = require("./ldap-utils");
 
-const ldap = require('ldapjs');
+const ldap = require("ldapjs");
 
 // We retrieve default values from .env
 // That might not be best practise because it seems often to be present in ignore-files.
-logger.debug("Loading configuration...")
-require('dotenv').config();
-logger.debug(process.env)
+logger.debug("Loading configuration...");
+require("dotenv").config();
+logger.debug(process.env);
 
 initializeBackend().then(result => {
-    let backend = result;
+    const backend = result;
 
-    let ldapServer = ldap.createServer();
+    const ldapServer = ldap.createServer();
 
     ldapServer.bind(process.env.BIND_THINGY, (request: any, result: any, next: any) => {
-        logger.debug(`Binding to ${request.dn} with credentials=${request.credentials}...`)
+        logger.debug(`Binding to ${request.dn} with credentials=${request.credentials}...`);
 
         // "So the entries cn=root and cn=evil, cn=root would both match and flow into this handler. Hence that check."
         if (request.dn.toString() !== process.env.BIND_THINGY || request.credentials !== process.env.BIND_PASSWORD) {
-            logger.debug("Credentials check failed")
+            logger.debug("Credentials check failed");
             return next(new ldap.InvalidCredentialsError());
         } else {
-            logger.debug("Credentials check passed")
+            logger.debug("Credentials check passed");
             result.end();
             return next();
         }
@@ -40,7 +40,7 @@ initializeBackend().then(result => {
     //ldapServer.search(PHONEBOOK_THINGY, pre, (request, result, next) => {
     ldapServer.search("", [authorize], (request: any, result: any, next: any) => {
         try {
-            logger.debug("Processing search request...")
+            logger.debug("Processing search request...");
             logger.trace(`  Base object (DN): ${request.dn.toString()}`);
             logger.trace(`  Scope: ${request.scope}`);
             logger.trace(`  Filter: ${request.filter.toString()}`);
@@ -56,7 +56,7 @@ initializeBackend().then(result => {
                         for (const person of persons) {
                             const ldapPerson = ldapUtils.buildPerson(person);
 
-                            logger.trace(`Sending LDAP person...: ${ldapPerson}`)
+                            logger.trace(`Sending LDAP person...: ${ldapPerson}`);
                             result.send(ldapPerson);
                         }
 
@@ -71,7 +71,7 @@ initializeBackend().then(result => {
                         for (const person of persons) {
                             const ldapPerson = ldapUtils.buildPerson(person);
 
-                            logger.trace(`Sending LDAP person...: ${ldapPerson}`)
+                            logger.trace(`Sending LDAP person...: ${ldapPerson}`);
                             result.send(ldapPerson);
                         }
 
@@ -80,12 +80,12 @@ initializeBackend().then(result => {
                     });
             }
         } catch (e) {
-            logger.error(e)
+            logger.error(e);
         }
     });
 
     ldapServer.unbind((request: any, result: any, next: any) => {
-        logger.debug("Unbinding...")
+        logger.debug("Unbinding...");
         // We could do some clean up here or close handles, if needed.
         result.end();
     });
@@ -93,16 +93,16 @@ initializeBackend().then(result => {
     ldapServer.listen(process.env.PORT, function () {
         logger.info(`LDAP listening at ${ldapServer.url}`);
     });
-})
+});
 
 function authorize(request: any, result: any, next: any) {
-    logger.debug(`Authorizing ${request.connection.ldap.bindDN}...`)
+    logger.debug(`Authorizing ${request.connection.ldap.bindDN}...`);
 
     if (!request.connection.ldap.bindDN.equals(process.env.BIND_THINGY)) {
-        logger.trace("Authorization check failed")
+        logger.trace("Authorization check failed");
         return next(new ldap.InsufficientAccessRightsError());
     } else {
-        logger.trace("Authorization check passed")
+        logger.trace("Authorization check passed");
         return next();
     }
 }
@@ -110,8 +110,8 @@ function authorize(request: any, result: any, next: any) {
 async function initializeBackend(): Promise<Backend> {
     logger.debug("Initializing backend...");
 
-    const isDev = (process.env.DEV === 'true');
-    logger.trace(`Using development environment: ${isDev}`)
+    const isDev = (process.env.DEV === "true");
+    logger.trace(`Using development environment: ${isDev}`);
     if (isDev) {
         logger.trace("Initializing dummy backend...");
         const dummyBackend = new DummyBackend();
@@ -134,7 +134,7 @@ function getSearchType(filter: string): string | undefined {
         searchType = "byNumber";
     } else {
         logger.error("ERROR: Filter is neither byName nor byNumber!");
-        searchType = undefined
+        searchType = undefined;
     }
 
     logger.trace(`Got search type for filter '${filter}': ${searchType}`);
@@ -142,7 +142,7 @@ function getSearchType(filter: string): string | undefined {
 }
 
 function extractNumber(simpleFilter: string): string {
-    logger.trace(`Extracting number from filter ${simpleFilter}...`)
+    logger.trace(`Extracting number from filter ${simpleFilter}...`);
     // TODO: Does not work here, but fine in Regex101.com
     // let rx = RegExp('\(.*=(.*)\)');
     // let arr = rx.exec(simpleFilter);
@@ -151,12 +151,12 @@ function extractNumber(simpleFilter: string): string {
 
     const number = simpleFilter.split("=")[1].split(")")[0];
 
-    logger.trace(`Extracted number from filter ${simpleFilter}: ${number}`)
+    logger.trace(`Extracted number from filter ${simpleFilter}: ${number}`);
     return number;
 }
 
 function extractName(simpleFilter: string): string {
-    logger.trace(`Extracting name from filter ${simpleFilter}...`)
+    logger.trace(`Extracting name from filter ${simpleFilter}...`);
     // TODO: Does not work here, but fine in Regex101.com
     // let rx = RegExp('\(.*=(.*)\)');
     // let arr = rx.exec(simpleFilter);
@@ -165,6 +165,6 @@ function extractName(simpleFilter: string): string {
 
     const name = simpleFilter.split("=")[1].split("*")[0];
 
-    logger.trace(`Extracted name from filter ${simpleFilter}: ${name}`)
+    logger.trace(`Extracted name from filter ${simpleFilter}: ${name}`);
     return name;
 }

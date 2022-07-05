@@ -1,7 +1,7 @@
 import {Person} from "./person";
 import {Backend} from "./backend";
 
-const logger = require('./logger');
+const logger = require("./logger");
 
 export class DummyBackend implements Backend {
     async searchByNumber(number: string): Promise<Person[]> {
@@ -9,7 +9,7 @@ export class DummyBackend implements Backend {
 
         const persons = this.getPersons();
 
-        let matchingPersons: Person[] = [];
+        const matchingPersons: Person[] = [];
         for (const person of persons) {
             logger.trace("Checking if person '" + person.displayname + "' number matches '" + number + "'...");
 
@@ -33,11 +33,11 @@ export class DummyBackend implements Backend {
 
         const persons = this.getPersons();
 
-        let matchingPersons = [];
+        const matchingPersons = [];
         for (const person of persons) {
-            logger.trace("Checking if person '" + person.displayname + "' name matches '" + name + "'...")
+            logger.trace("Checking if person '" + person.displayname + "' name matches '" + name + "'...");
             if (person.givenname.startsWith(name) || person.surname.startsWith(name)) {
-                logger.trace("Adding matching person '" + person.displayname + "'...")
+                logger.trace("Adding matching person '" + person.displayname + "'...");
                 matchingPersons.push(person);
             }
         }
@@ -47,7 +47,7 @@ export class DummyBackend implements Backend {
     }
 
     private getPersons(): Person[] {
-        logger.trace("Getting persons...")
+        logger.trace("Getting persons...");
 
         const persons: Person[] = [
             new Person("Sauron", "Bad-Guy", ["+4910011"], ["+4910021", "+4910022", "+4910022"], ["+4910031", "+4910032"]),

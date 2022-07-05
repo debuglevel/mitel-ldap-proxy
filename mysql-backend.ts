@@ -3,12 +3,12 @@ import {Connection, PoolConnection} from "mariadb";
 import {Person} from "./person";
 import {Statistics} from "./statistics";
 
-const logger = require('./logger');
+const logger = require("./logger");
 
 const statistics = new Statistics();
 
 export class MysqlBackend implements Backend {
-    private mariadb = require('mariadb');
+    private mariadb = require("mariadb");
 
     private homeNumberTypeValue = "home";
     private mobileNumberTypeValue = "mobile";
@@ -26,7 +26,7 @@ export class MysqlBackend implements Backend {
     async initialize() {
         let connection: PoolConnection;
         try {
-            logger.trace(`Getting connection...`);
+            logger.trace("Getting connection...");
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection?.threadId}`);
             this.createTables(connection);
@@ -44,11 +44,11 @@ export class MysqlBackend implements Backend {
 
         let connection;
         try {
-            logger.trace(`Getting connection...`);
+            logger.trace("Getting connection...");
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection.threadId}`);
 
-            logger.trace(`Querying...`);
+            logger.trace("Querying...");
             const result = await connection.query(`
         SELECT p.id
         FROM numbers n
@@ -58,13 +58,13 @@ export class MysqlBackend implements Backend {
             logger.trace(`Got ${result.length} results`);
             // logger.trace(result);
 
-            let persons: Person[] = [];
+            const persons: Person[] = [];
             for (const row of result) {
-                const person = await this.getPersonById(row.id)
+                const person = await this.getPersonById(row.id);
                 persons.push(person);
             }
 
-            logger.trace(`Got ${persons.length} persons searched by number:`)
+            logger.trace(`Got ${persons.length} persons searched by number:`);
             logger.trace(persons);
 
             if (persons.length >= 1) {
@@ -89,11 +89,11 @@ export class MysqlBackend implements Backend {
 
         let connection;
         try {
-            logger.trace(`Getting connection...`);
+            logger.trace("Getting connection...");
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection.threadId}`);
 
-            logger.trace(`Querying...`);
+            logger.trace("Querying...");
             const result = await connection.query(`
         SELECT p.id
         FROM persons p
@@ -102,13 +102,13 @@ export class MysqlBackend implements Backend {
             logger.trace(`Got ${result.length} results`);
             // logger.trace(result);
 
-            let persons: Person[] = [];
+            const persons: Person[] = [];
             for (const row of result) {
-                const person = await this.getPersonById(row.id)
+                const person = await this.getPersonById(row.id);
                 persons.push(person);
             }
 
-            logger.trace(`Got ${persons.length} persons searched by name:`)
+            logger.trace(`Got ${persons.length} persons searched by name:`);
             logger.trace(persons);
 
             if (persons.length >= 1) {
@@ -151,7 +151,7 @@ export class MysqlBackend implements Backend {
             FULLTEXT KEY \`surname\` (\`surname\`)
            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `;
-        this.createTable(connection, "persons", sqlCreatePersons)
+        this.createTable(connection, "persons", sqlCreatePersons);
 
         const sqlCreateNumbers = `
         CREATE TABLE IF NOT EXISTS \`numbers\` (
@@ -166,23 +166,23 @@ export class MysqlBackend implements Backend {
             KEY \`type\` (\`type\`)
            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
            `;
-        this.createTable(connection, "numbers", sqlCreateNumbers)
+        this.createTable(connection, "numbers", sqlCreateNumbers);
     }
 
     private async getNumbers(connection: Connection, personId: number, numberType: string): Promise<string[]> {
-        logger.debug(`Getting '${numberType}' numbers for person id=${personId}...`)
+        logger.debug(`Getting '${numberType}' numbers for person id=${personId}...`);
         const result = await connection.query(`
         SELECT n.id, n.type, n.number
         FROM numbers n
         WHERE n.person_id = ? AND n.type = ?
         `, [personId, numberType]);
 
-        let numbers = [];
+        const numbers = [];
         for (const row of result) {
             numbers.push(row.number);
         }
 
-        logger.trace(`Got ${numbers.length} '${numberType}' numbers for person id=${personId}...`)
+        logger.trace(`Got ${numbers.length} '${numberType}' numbers for person id=${personId}...`);
         return numbers;
     }
 
@@ -191,11 +191,11 @@ export class MysqlBackend implements Backend {
 
         let connection: PoolConnection;
         try {
-            logger.trace(`Getting connection...`);
+            logger.trace("Getting connection...");
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection.threadId}`);
 
-            logger.trace(`Querying...`);
+            logger.trace("Querying...");
             const result = await connection.query(`
         SELECT p.id, p.givenname, p.surname
         FROM persons p
@@ -205,7 +205,7 @@ export class MysqlBackend implements Backend {
             // logger.trace(result);
 
             // TODO: we could only process the first entry to be a little bit more efficient.
-            let persons: Person[] = [];
+            const persons: Person[] = [];
             for (const row of result) {
                 logger.trace("Building person from row...:");
                 logger.trace(row);
@@ -216,9 +216,9 @@ export class MysqlBackend implements Backend {
                     await this.getNumbers(connection, id, this.homeNumberTypeValue),
                     await this.getNumbers(connection, id, this.mobileNumberTypeValue),
                     await this.getNumbers(connection, id, this.businessNumberTypeValue)
-                )
+                );
 
-                logger.trace(`Built person from row:`);
+                logger.trace("Built person from row:");
                 logger.trace(person);
 
                 persons.push(person);
@@ -227,7 +227,7 @@ export class MysqlBackend implements Backend {
             if (persons.length >= 1) {
                 const person: Person = persons[0];
 
-                logger.trace(`Got person by id=${id}:`)
+                logger.trace(`Got person by id=${id}:`);
                 logger.trace(person);
                 return person;
             } else {

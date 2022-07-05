@@ -12,18 +12,18 @@
 // };
 
 
-const pino = require('pino');
+const pino = require("pino");
 
 module.exports = pino({
-    name: 'mitel-ldap-proxy',
-    level: 'trace',
+    name: "mitel-ldap-proxy",
+    level: "trace",
     transport: {
         // TODO: It is NOT recommended to use this, as it destroys structured logging.
-        target: 'pino-pretty',
+        target: "pino-pretty",
         options: {
             colorize: true,
-            translateTime: 'yyyy-mm-dd HH:MM:ss',
-            ignore: 'time,pid,hostname',
+            translateTime: "yyyy-mm-dd HH:MM:ss",
+            ignore: "time,pid,hostname",
             //ignore: 'pid,hostname',
         }
     },
