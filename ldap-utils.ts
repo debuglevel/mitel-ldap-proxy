@@ -61,18 +61,19 @@ function getSearchType(filter: string): string | undefined {
     return searchType;
 }
 
-function extractNumber(simpleFilter: string): string {
-    logger.trace(`Extracting number from filter ${simpleFilter}...`);
-    // TODO: Does not work here, but fine in Regex101.com
-    // let rx = RegExp('\(.*=(.*)\)');
-    // let arr = rx.exec(simpleFilter);
-    // console.log(arr);
-    // let number = arr[1];
+function extractNumber(filter: string): string {
+    logger.trace(`Extracting number from filter ${filter}...`);
+    const regExp = RegExp('\\(.*=(.*?)\\)'); // The ? in .*? is for un-greedy.
+    const regExpExecArray = regExp.exec(filter);
 
-    const number = simpleFilter.split("=")[1].split(")")[0];
+    if (regExpExecArray === null) {
+        throw Error(`Could not extract number from filter ${filter}`);
+    } else {
+        const number = regExpExecArray[1];
 
-    logger.trace(`Extracted number from filter ${simpleFilter}: ${number}`);
-    return number;
+        logger.trace(`Extracted number from filter ${filter}: ${number}`);
+        return number;
+    }
 }
 
 function extractName(filter: string): string {
