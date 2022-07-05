@@ -3,12 +3,6 @@ import {MysqlBackend} from "./mysql-backend";
 import {DummyBackend} from "./dummy-backend";
 import {Backend} from "./backend";
 
-module.exports = {
-    extractNumber,
-    extractName,
-    getSearchType,
-};
-
 const logger = require("./logger");
 logger.info("Starting mitel-ldap-proxy...");
 
@@ -52,11 +46,11 @@ initializeBackend().then(result => {
             logger.trace(`  Filter: ${request.filter.toString()}`);
             // logger.trace(request.filter)
 
-            const searchType = getSearchType(request.filter.toString());
+            const searchType = ldapUtils.getSearchType(request.filter.toString());
             logger.trace(`Search type: ${searchType}`);
 
             if (searchType === "byName") {
-                const name = extractName(request.filter.toString());
+                const name = ldapUtils.extractName(request.filter.toString());
                 backend.searchByName(name)
                     .then((persons: Person[]) => {
                         for (const person of persons) {
@@ -70,7 +64,7 @@ initializeBackend().then(result => {
                         return next();
                     });
             } else if (searchType === "byNumber") {
-                const number = extractNumber(request.filter.filters[1].toString());
+                const number = ldapUtils.extractNumber(request.filter.filters[1].toString());
 
                 backend.searchByNumber(number)
                     .then((persons: Person[]) => {
@@ -128,49 +122,4 @@ async function initializeBackend(): Promise<Backend> {
         await mysqlBackend.initialize();
         return mysqlBackend;
     }
-}
-
-function getSearchType(filter: string): string | undefined {
-    logger.trace(`Getting search type for filter '${filter}'...`);
-
-    let searchType: string | undefined;
-    if (filter.startsWith("(|(sn=")) {
-        searchType = "byName";
-    } else if (filter.startsWith("(|(mobile=")) {
-        searchType = "byNumber";
-    } else {
-        logger.error("ERROR: Filter is neither byName nor byNumber!");
-        searchType = undefined;
-    }
-
-    logger.trace(`Got search type for filter '${filter}': ${searchType}`);
-    return searchType;
-}
-
-function extractNumber(simpleFilter: string): string {
-    logger.trace(`Extracting number from filter ${simpleFilter}...`);
-    // TODO: Does not work here, but fine in Regex101.com
-    // let rx = RegExp('\(.*=(.*)\)');
-    // let arr = rx.exec(simpleFilter);
-    // console.log(arr);
-    // let number = arr[1];
-
-    const number = simpleFilter.split("=")[1].split(")")[0];
-
-    logger.trace(`Extracted number from filter ${simpleFilter}: ${number}`);
-    return number;
-}
-
-function extractName(simpleFilter: string): string {
-    logger.trace(`Extracting name from filter ${simpleFilter}...`);
-    // TODO: Does not work here, but fine in Regex101.com
-    // let rx = RegExp('\(.*=(.*)\)');
-    // let arr = rx.exec(simpleFilter);
-    // console.log(arr);
-    // let number = arr[1];
-
-    const name = simpleFilter.split("=")[1].split("*")[0];
-
-    logger.trace(`Extracted name from filter ${simpleFilter}: ${name}`);
-    return name;
 }
