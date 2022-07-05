@@ -1,7 +1,7 @@
 const logger = require("./logger");
 
 module.exports = {
-    buildPerson: buildObject,
+    buildObject,
     extractName,
     extractNumber,
     getSearchType,

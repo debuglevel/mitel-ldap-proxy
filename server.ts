@@ -54,7 +54,7 @@ initializeBackend().then(result => {
                 backend.searchByName(name)
                     .then((persons: Person[]) => {
                         for (const person of persons) {
-                            const ldapPerson = ldapUtils.buildPerson(person);
+                            const ldapPerson = ldapUtils.buildObject(person);
 
                             logger.trace(`Sending LDAP person...: ${ldapPerson}`);
                             result.send(ldapPerson);
@@ -69,7 +69,7 @@ initializeBackend().then(result => {
                 backend.searchByNumber(number)
                     .then((persons: Person[]) => {
                         for (const person of persons) {
-                            const ldapPerson = ldapUtils.buildPerson(person);
+                            const ldapPerson = ldapUtils.buildObject(person);
 
                             logger.trace(`Sending LDAP person...: ${ldapPerson}`);
                             result.send(ldapPerson);
