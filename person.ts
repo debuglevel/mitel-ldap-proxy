@@ -1,4 +1,5 @@
 export class Person {
+    id: number;
     givenname: string;
     surname: string;
     home: string[] = [];
@@ -6,12 +7,14 @@ export class Person {
     business: string[] = [];
 
     constructor(
+        id: number,
         givenname: string,
         surname: string,
         home: string[],
         mobile: string[],
         business: string[],
     ) {
+        this.id = id;
         this.givenname = givenname;
         this.surname = surname;
 

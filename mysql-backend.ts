@@ -211,6 +211,7 @@ export class MysqlBackend implements Backend {
                 logger.trace(row);
 
                 const person = new Person(
+                    row.id,
                     row.givenname,
                     row.surname,
                     await this.getNumbers(connection, id, this.homeNumberTypeValue),

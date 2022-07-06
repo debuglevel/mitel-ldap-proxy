@@ -50,9 +50,9 @@ export class DummyBackend implements Backend {
         logger.trace("Getting persons...");
 
         const persons: Person[] = [
-            new Person("Sauron", "Bad-Guy", ["+4910011"], ["+4910021", "+4910022", "+4910022"], ["+4910031", "+4910032"]),
-            new Person("Saruman", "the White", ["+4920"], ["+4921"], ["+4922"]),
-            new Person("Tom", "Riddle", ["+4930"], ["+4931"], ["+4932"])
+            new Person(1, "Sauron", "Bad-Guy", ["+4910011"], ["+4910021", "+4910022", "+4910022"], ["+4910031", "+4910032"]),
+            new Person(2, "Saruman", "the White", ["+4920"], ["+4921"], ["+4922"]),
+            new Person(3, "Tom", "Riddle", ["+4930"], ["+4931"], ["+4932"])
         ];
 
         return persons;
