@@ -67,10 +67,27 @@ tsc && node build/server.js # `npm run-script run` would do the same
 The PBX will usually query only two filters. You can test those with `ldapsearch`.
 
 ```bash
-ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(|(sn=Sa*))"
-ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(|(mobile=+4930666)(homephone=+4930666)(telephonenumber=+4930666))"
+ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(|(sn=Sa*))" # As queried by Aastra 6775ip
+ldapsearch -H ldap://localhost:10389 -D cn=sauron -w supersecret -LLL -x -b dc=baraddur,dc=mordor "(|(mobile=+4930666)(homephone=+4930666)(telephonenumber=+4930666))" # As queried by Mitel 6869i
 ```
 
 ## References
+
+### Reverse engineering
+
+#### Name lookup on incoming call (byNumber)
+Both `Aastra 6775ip` and `Mitel 6869i` do the same one lookup on an incoming call:
+```
+"(|(mobile=+4930666)(homephone=+4930666)(telephonenumber=+4930666))"
+```
+
+#### Number lookup in address book (byName)
+Aastra 6775ip seems to lookup once with `(|(sn=Riddle*))` when the name was typed in and then caches everything until the next lookup.
+
+Mitel 6869i seems to query LDAP on every move in the menu:
+1. At first, `(|(sn=Riddle*))`  is queried. It then displays all results (TODO: only tested with 1 result).
+2. But when "Tom Riddle" is select from the menu, `(&(sn=Riddle*)(givenname=Tom*))` is issued again.
+  * This is somewhat weird, because not the DN is used, but the two attributes; and they are used with a wildcard, even though the phone knows the full name.
+
 <https://www.manualslib.de/manual/74859/Aastra-Opencom-X320.html?page=228#manual>
 <https://productdocuments.mitel.com/doc_finder/DocFinder/syd-0431_de.pdf?get&DNR=syd-0431?get&DNR=syd-0431>
