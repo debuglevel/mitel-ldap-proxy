@@ -39,7 +39,7 @@ describe("extractNumber", () => {
     });
 });
 
-describe("extractName", () => {
+describe("extractNames", () => {
     it("extracts name from filter (i.e. Mitel Q&A)", () => {
         // This is what Mitel Q&A states
         expect(server.extractNames("(sn=Riddle*)"))

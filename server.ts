@@ -50,7 +50,7 @@ initializeBackend().then(result => {
             logger.trace(`Search type: ${searchType}`);
 
             if (searchType === "byName") {
-                const names = ldapUtils.extractName(request.filter.toString());
+                const names = ldapUtils.extractNames(request.filter.toString());
                 backend.searchByNames(names.givenname, names.surname)
                     .then((persons: Person[]) => {
                         for (const person of persons) {
