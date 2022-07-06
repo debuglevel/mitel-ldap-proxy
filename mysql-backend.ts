@@ -84,8 +84,8 @@ export class MysqlBackend implements Backend {
         }
     }
 
-    async searchByName(name: string): Promise<Person[]> {
-        logger.debug(`Searching by name '${name}'`);
+    async searchByNames(givenname: string, surname: string): Promise<Person[]> {
+        logger.debug(`Searching by givenname '${givenname}' and surname '${surname}'`);
 
         let connection;
         try {
@@ -93,12 +93,15 @@ export class MysqlBackend implements Backend {
             connection = await this.pool.getConnection();
             logger.trace(`Got connection with id=${connection.threadId}`);
 
+            if (givenname === null) { givenname = "" }
+            if (surname === null) { surname = "" }
+
             logger.trace("Querying...");
             const result = await connection.query(`
         SELECT p.id
         FROM persons p
-        WHERE p.givenname LIKE ? OR p.surname LIKE ? 
-        `, [`${name}%`, `${name}%`]);
+        WHERE p.givenname LIKE ? AND p.surname LIKE ? 
+        `, [`${givenname}%`, `${surname}%`]);
             logger.trace(`Got ${result.length} results`);
             // logger.trace(result);
 

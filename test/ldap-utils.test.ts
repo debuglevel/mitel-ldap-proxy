@@ -42,29 +42,61 @@ describe("extractNumber", () => {
 describe("extractName", () => {
     it("extracts name from filter (i.e. Mitel Q&A)", () => {
         // This is what Mitel Q&A states
-        expect(server.extractName("(sn=Sauron*)"))
-            .toBe("Sauron");
+        expect(server.extractNames("(sn=Riddle*)"))
+            .toStrictEqual({ givenname: null, surname: "Riddle" });
     });
 
     it("extracts name from unnecessarily nested OR-filter (i.e. actual OpenCom X320)", () => {
         // This is what OpenCom X320 actually sends
-        expect(server.extractName("(|(sn=Sauron*))"))
-            .toBe("Sauron");
+        expect(server.extractNames("(|(sn=Riddle*))"))
+            .toStrictEqual({ givenname: null, surname: "Riddle" });
     });
 
     it("extracts name from a hypothetical filter without asterisk", () => {
-        expect(server.extractName("(sn=Sauron)"))
-            .toBe("Sauron");
+        expect(server.extractNames("(sn=Riddle)"))
+            .toStrictEqual({ givenname: null, surname: "Riddle" });
     });
 
     it("extracts name from a hypothetical givenname-filter", () => {
-        expect(server.extractName("(givenname=Sauron*)"))
-            .toBe("Sauron");
+        expect(server.extractNames("(givenname=Tom*)"))
+            .toStrictEqual({ givenname: "Tom", surname: null });
     });
 
     it("extracts name from a hypothetical givenName-filter", () => {
-        expect(server.extractName("(givenName=Sauron*)"))
-            .toBe("Sauron");
+        expect(server.extractNames("(givenName=Tom*)"))
+            .toStrictEqual({ givenname: "Tom", surname: null });
+    });
+
+    it("extracts names from filter", () => {
+        // This is what Mitel 6869i actually sends (on second query in menu seöection)
+        expect(server.extractNames("(|(givenname=Tom*)(sn=Riddle*))"))
+            .toStrictEqual({ givenname: "Tom", surname: "Riddle"});
+    });
+});
+
+describe("extractSurname", () => {
+    it("extracts surname from (sn=Riddle*)", () => {
+        expect(server.extractSurname("(sn=Riddle*)"))
+            .toBe("Riddle");
+    });
+
+    it("extracts surname from (|(givenname=Tom*)(sn=Riddle*))", () => {
+        // This is what Mitel 6869i actually sends (on second query in menu seöection)
+        expect(server.extractSurname("(|(givenname=Tom*)(sn=Riddle*))"))
+            .toBe("Riddle");
+    });
+});
+
+describe("extractGivenname", () => {
+    it("extracts givenname from (givenname=Tom*)", () => {
+        expect(server.extractGivenname("(givenname=Tom*)"))
+            .toBe("Tom");
+    });
+
+    it("extracts givenname from (|(givenname=Tom*)(sn=Riddle*))", () => {
+        // This is what Mitel 6869i actually sends (on second query in menu seöection)
+        expect(server.extractGivenname("(|(givenname=Tom*)(sn=Riddle*))"))
+            .toBe("Tom");
     });
 });
 

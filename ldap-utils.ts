@@ -2,7 +2,9 @@ const logger = require("./logger");
 
 module.exports = {
     buildObject,
-    extractName,
+    extractNames,
+    extractSurname,
+    extractGivenname,
     extractNumber,
     getSearchType,
 };
@@ -83,17 +85,55 @@ function extractNumber(filter: string): string {
     }
 }
 
-function extractName(filter: string): string {
-    logger.trace(`Extracting name from filter ${filter}...`);
-    const regExp = RegExp("\\(.*=(.*?)\\*?\\)"); // The ? in .*? is for un-greedy.
+function extractNames(filter: string): object {
+    logger.trace(`Extracting names from filter ${filter}...`);
+
+    let givenname: String | null = null;
+    try {
+        givenname = extractGivenname(filter);
+    }catch(e){ }
+
+    let surname: String | null = null;
+    try {
+        surname = extractSurname(filter);
+    }catch(e){ }
+
+    if (givenname === null && surname === null) {
+        throw Error(`Could not extract names from filter ${filter}`);
+    } else {
+        return { 
+            givenname: givenname,
+            surname: surname,
+        };
+    }
+}
+
+function extractGivenname(filter: string): string {
+    logger.trace(`Extracting givenname from filter ${filter}...`);
+    const regExp = RegExp("\\(given[nN]ame=(.*?)\\*?\\)"); // The ? in .*? is for un-greedy.
     const regExpExecArray = regExp.exec(filter);
 
     if (regExpExecArray === null) {
-        throw Error(`Could not extract name from filter ${filter}`);
+        throw Error(`Could not extract givenname from filter ${filter}`);
     } else {
         const name = regExpExecArray[1];
 
-        logger.trace(`Extracted name from filter ${filter}: ${name}`);
+        logger.trace(`Extracted givenname from filter ${filter}: ${name}`);
+        return name;
+    }
+}
+
+function extractSurname(filter: string): string {
+    logger.trace(`Extracting surname from filter ${filter}...`);
+    const regExp = RegExp("\\(sn=(.*?)\\*?\\)"); // The ? in .*? is for un-greedy.
+    const regExpExecArray = regExp.exec(filter);
+
+    if (regExpExecArray === null) {
+        throw Error(`Could not extract surname from filter ${filter}`);
+    } else {
+        const name = regExpExecArray[1];
+
+        logger.trace(`Extracted surname from filter ${filter}: ${name}`);
         return name;
     }
 }

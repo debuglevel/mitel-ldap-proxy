@@ -28,21 +28,22 @@ export class DummyBackend implements Backend {
         return matchingPersons;
     }
 
-    async searchByName(name: string): Promise<Person[]> {
-        logger.debug("Searching persons for name '" + name + "'");
+    async searchByNames(givenname: string, surname: string): Promise<Person[]> {
+        // TODO: might be broken due to change in (name) to (givenname,surname) prototype
+        logger.debug("Searching persons for name '" + surname + "'");
 
         const persons = this.getPersons();
 
         const matchingPersons = [];
         for (const person of persons) {
-            logger.trace("Checking if person '" + person.displayname + "' name matches '" + name + "'...");
-            if (person.givenname.startsWith(name) || person.surname.startsWith(name)) {
+            logger.trace("Checking if person '" + person.displayname + "' name matches '" + surname + "'...");
+            if (person.givenname.startsWith(givenname) || person.surname.startsWith(surname)) {
                 logger.trace("Adding matching person '" + person.displayname + "'...");
                 matchingPersons.push(person);
             }
         }
 
-        logger.trace("Searched persons for name '" + name + "': " + matchingPersons.length);
+        logger.trace("Searched persons for name '" + surname + "': " + matchingPersons.length);
         return matchingPersons;
     }
 
