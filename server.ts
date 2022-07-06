@@ -78,6 +78,19 @@ initializeBackend().then(result => {
                         result.end();
                         return next();
                     });
+            }else if (searchType === "all") {
+                backend.searchByName("")
+                    .then((persons: Person[]) => {
+                        for (const person of persons) {
+                            const ldapPerson = ldapUtils.buildObject(person);
+
+                            logger.trace(`Sending LDAP person...: ${ldapPerson}`);
+                            result.send(ldapPerson);
+                        }
+
+                        result.end();
+                        return next();
+                    });
             }
         } catch (e) {
             logger.error(e);
