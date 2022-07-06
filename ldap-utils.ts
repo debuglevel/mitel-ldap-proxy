@@ -68,7 +68,7 @@ function getSearchType(filter: string): string | undefined {
 
 function extractNumber(filter: string): string {
     logger.trace(`Extracting number from filter ${filter}...`);
-    const regExp = RegExp('\\(.*=(.*?)\\)'); // The ? in .*? is for un-greedy.
+    const regExp = RegExp("\\(.*=(.*?)\\)"); // The ? in .*? is for un-greedy.
     const regExpExecArray = regExp.exec(filter);
 
     if (regExpExecArray === null) {
@@ -83,7 +83,7 @@ function extractNumber(filter: string): string {
 
 function extractName(filter: string): string {
     logger.trace(`Extracting name from filter ${filter}...`);
-    const regExp = RegExp('\\(.*=(.*?)\\*?\\)'); // The ? in .*? is for un-greedy.
+    const regExp = RegExp("\\(.*=(.*?)\\*?\\)"); // The ? in .*? is for un-greedy.
     const regExpExecArray = regExp.exec(filter);
 
     if (regExpExecArray === null) {

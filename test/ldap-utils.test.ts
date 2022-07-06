@@ -1,4 +1,4 @@
-const server = require('../ldap-utils');
+const server = require("../ldap-utils");
 
 describe("extractNumber", () => {
     it("extracts number from simple OR-filter (i.e. actual OpenCom X320)", () => {
