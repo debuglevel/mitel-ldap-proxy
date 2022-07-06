@@ -57,8 +57,10 @@ function getSearchType(filter: string): string | undefined {
         || filter.toLowerCase().includes("(homephone=")
         || filter.toLowerCase().includes("(telephonenumber=")) {
         searchType = "byNumber";
+    } else if (filter.toLocaleLowerCase() === "(objectclass=*)") {
+        searchType = "all";
     } else {
-        logger.error("ERROR: Filter is neither byName nor byNumber!");
+        logger.error("ERROR: Filter is neither 'byName' nor 'byNumber' nor 'all'!");
         searchType = undefined;
     }
 

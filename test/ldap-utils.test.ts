@@ -69,6 +69,16 @@ describe("extractName", () => {
 });
 
 describe("getSearchType", () => {
+    it("concludes all search (objectClass=*)", () => {
+        expect(server.getSearchType("(objectClass=*)"))
+            .toBe("all");
+    });
+
+    it("concludes all search (objectclass=*)", () => {
+        expect(server.getSearchType("(objectclass=*)"))
+            .toBe("all");
+    });
+
     it("concludes byName search (i.e. Mitel Q&A)", () => {
         // This is what Mitel Q&A states
         expect(server.getSearchType("(sn=Sauron*)"))
